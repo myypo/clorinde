@@ -142,11 +142,12 @@ pub fn gen_cargo_file(
             # Postgres async client
             tokio-postgres = {{ version = "0.7.10", features = [{client_features}] }}
             # Async utils
+            async-trait = "0.1.78"
             futures = "0.3.30"
 
             ## Async features dependencies
             # Async connection pooling
-            deadpool-postgres = {{ version = "0.13.0", optional = true }}
+            deadpool-postgres = {{ version = "0.12.1", optional = true }}
         "#}
         .unwrap();
     }

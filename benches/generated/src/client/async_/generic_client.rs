@@ -1,6 +1,6 @@
 // This file was generated with `cornucopia`. Do not modify.
 
-use std::future::Future;
+use async_trait::async_trait;
 use tokio_postgres::{
     types::BorrowToSql, Client, Error, RowStream, Statement, ToStatement, Transaction,
 };
@@ -9,47 +9,45 @@ use tokio_postgres::{
 ///
 /// In addition, when the `deadpool` feature is enabled (default), this trait also
 /// abstracts over deadpool clients and transactions
+#[async_trait]
 pub trait GenericClient: Send + Sync {
-    fn prepare(&self, query: &str) -> impl Future<Output = Result<Statement, Error>> + Send;
-    fn execute<T>(
+    async fn prepare(&self, query: &str) -> Result<Statement, Error>;
+    async fn execute<T>(
         &self,
         query: &T,
         params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> impl Future<Output = Result<u64, Error>> + Send
+    ) -> Result<u64, Error>
     where
         T: ?Sized + tokio_postgres::ToStatement + Sync + Send;
-    fn query_one<T>(
+    async fn query_one<T>(
         &self,
         statement: &T,
         params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> impl Future<Output = Result<tokio_postgres::Row, Error>> + Send
+    ) -> Result<tokio_postgres::Row, Error>
     where
         T: ?Sized + tokio_postgres::ToStatement + Sync + Send;
-    fn query_opt<T>(
+    async fn query_opt<T>(
         &self,
         statement: &T,
         params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> impl Future<Output = Result<Option<tokio_postgres::Row>, Error>> + Send
+    ) -> Result<Option<tokio_postgres::Row>, Error>
     where
         T: ?Sized + tokio_postgres::ToStatement + Sync + Send;
-    fn query<T>(
+    async fn query<T>(
         &self,
         query: &T,
         params: &[&(dyn tokio_postgres::types::ToSql + Sync)],
-    ) -> impl Future<Output = Result<Vec<tokio_postgres::Row>, Error>> + Send
+    ) -> Result<Vec<tokio_postgres::Row>, Error>
     where
         T: ?Sized + tokio_postgres::ToStatement + Sync + Send;
-    fn query_raw<T, P, I>(
-        &self,
-        statement: &T,
-        params: I,
-    ) -> impl Future<Output = Result<RowStream, Error>> + Send
+    async fn query_raw<T, P, I>(&self, statement: &T, params: I) -> Result<RowStream, Error>
     where
         T: ?Sized + ToStatement + Sync + Send,
         P: BorrowToSql,
         I: IntoIterator<Item = P> + Sync + Send,
         I::IntoIter: ExactSizeIterator;
 }
+#[async_trait]
 impl GenericClient for Transaction<'_> {
     async fn prepare(&self, query: &str) -> Result<Statement, Error> {
         Transaction::prepare(self, query).await
@@ -104,6 +102,7 @@ impl GenericClient for Transaction<'_> {
         Transaction::query_raw(self, statement, params).await
     }
 }
+#[async_trait]
 impl GenericClient for Client {
     async fn prepare(&self, query: &str) -> Result<Statement, Error> {
         Client::prepare(self, query).await
