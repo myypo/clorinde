@@ -117,7 +117,7 @@ impl<T: ToSql, I: Iterator<Item = T> + ExactSizeIterator, F: Fn() -> I + Sync> T
     to_sql_checked!();
 }
 fn downcast(len: usize) -> Result<i32, Box<dyn std::error::Error + Sync + Send>> {
-    if len > i32::max_value() as usize {
+    if len > i32::MAX as usize {
         Err("value too large to transmit".into())
     } else {
         Ok(len as i32)

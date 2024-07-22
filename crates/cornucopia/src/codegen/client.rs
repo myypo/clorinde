@@ -180,7 +180,7 @@ pub fn core_domain() -> String {
         pub fn escape_domain_to_sql<T: ToSql>(
             ty: &Type,
             w: &mut BytesMut,
-            iter: impl Iterator<Item = T> + ExactSizeIterator,
+            iter: impl ExactSizeIterator<Item = T>,
         ) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
             let member_type = match *ty.kind() {
                 Kind::Array(ref member) => escape_domain(member),
@@ -206,7 +206,7 @@ pub fn core_domain() -> String {
         }
 
         fn downcast(len: usize) -> Result<i32, Box<dyn Error + Sync + Send>> {
-            if len > i32::max_value() as usize {
+            if len > i32::MAX as usize {
                 Err("value too large to transmit".into())
             } else {
                 Ok(len as i32)
@@ -432,7 +432,7 @@ pub fn core_type_traits(dependency_analysis: &DependencyAnalysis) -> String {
 
         // https://github.com/sfackler/rust-postgres/blob/765395f288861209a644c621bf72172acd482515/postgres-types/src/lib.rs
         fn downcast(len: usize) -> Result<i32, Box<dyn std::error::Error + Sync + Send>> {
-            if len > i32::max_value() as usize {
+            if len > i32::MAX as usize {
                 Err("value too large to transmit".into())
             } else {
                 Ok(len as i32)

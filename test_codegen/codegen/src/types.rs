@@ -74,7 +74,7 @@ impl<'a> postgres_types::ToSql for CloneCompositeBorrowed<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -143,7 +143,7 @@ impl<'a> postgres_types::ToSql for CopyComposite {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -280,7 +280,7 @@ impl<'a> postgres_types::ToSql for DomainCompositeParams<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -393,7 +393,7 @@ impl<'a> postgres_types::ToSql for NamedCompositeBorrowed<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -533,7 +533,7 @@ impl<'a> postgres_types::ToSql for NamedCompositeWithDot {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -654,7 +654,7 @@ impl<'a> postgres_types::ToSql for NullityCompositeParams<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -869,7 +869,7 @@ impl<'a> postgres_types::ToSql for CustomCompositeBorrowed<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -1009,7 +1009,7 @@ impl<'a> postgres_types::ToSql for NightmareCompositeParams<'a> {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -1084,7 +1084,7 @@ impl<'a> postgres_types::ToSql for SyntaxComposite {
                 postgres_types::IsNull::Yes => -1,
                 postgres_types::IsNull::No => {
                     let len = out.len() - base - 4;
-                    if len > i32::max_value() as usize {
+                    if len > i32::MAX as usize {
                         return Err(Into::into("value too large to transmit"));
                     }
                     len as i32
@@ -1304,7 +1304,7 @@ pub mod schema {
                     postgres_types::IsNull::Yes => -1,
                     postgres_types::IsNull::No => {
                         let len = out.len() - base - 4;
-                        if len > i32::max_value() as usize {
+                        if len > i32::MAX as usize {
                             return Err(Into::into("value too large to transmit"));
                         }
                         len as i32
