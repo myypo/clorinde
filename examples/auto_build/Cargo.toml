@@ -12,4 +12,4 @@ futures = "0.3.28"
 # Postgres interaction
 tokio-postgres = "0.7.8"
 # Connection pooling
-deadpool-postgres = "0.13.0"
+deadpool-postgres = "0.14.0"
