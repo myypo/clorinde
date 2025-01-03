@@ -356,6 +356,7 @@ impl TypeRegistrar {
                 let (rust_name, is_copy) = match *ty {
                     Type::BOOL => ("bool", true),
                     Type::CHAR => ("i8", true),
+                    Type::BPCHAR => ("i8", true),
                     Type::INT2 => ("i16", true),
                     Type::INT4 => ("i32", true),
                     Type::INT8 => ("i64", true),

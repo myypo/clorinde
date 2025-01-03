@@ -61,7 +61,8 @@ pub fn gen_cargo_file(
             
             [features]
             default = ["deadpool"]
-            deadpool = ["dep:deadpool-postgres"]
+            deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
+            wasm = ["tokio-postgres/js"]
         "#}
         .unwrap()
     }
@@ -140,7 +141,7 @@ pub fn gen_cargo_file(
 
             ## Async client dependencies
             # Postgres async client
-            tokio-postgres = {{ version = "0.7.10", features = [{client_features}] }}
+            tokio-postgres = {{ version = "0.7.10", default-features = false, features = [{client_features}] }}
             # Async utils
             async-trait = "0.1.78"
             futures = "0.3.30"
