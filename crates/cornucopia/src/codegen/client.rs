@@ -29,6 +29,11 @@ pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
         pub use array_iterator::ArrayIterator;
         pub use domain::{Domain, DomainArray};
         pub use type_traits::{ArraySql, BytesSql, IterSql, StringSql};
+
+        #[cfg(feature = "deadpool")]
+        pub use deadpool_postgres;
+        #[cfg(feature = "deadpool")]
+        pub use tokio_postgres;
     );
     if dependency_analysis.json {
         code!(w => pub use type_traits::JsonSql; )
