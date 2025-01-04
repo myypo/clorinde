@@ -1,4 +1,4 @@
-// This file was generated with `cornucopia`. Do not modify.
+// This file was generated with `clorinde`. Do not modify.
 
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};

@@ -49,7 +49,7 @@ pub fn gen_cargo_file(
 ) -> String {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
     let mut buf = formatdoc! {r#"
-        # This file was generated with `cornucopia`. Do not modify
+        # This file was generated with `clorinde`. Do not modify
         [package]
         name = "{name}"
         version = "{VERSION}"

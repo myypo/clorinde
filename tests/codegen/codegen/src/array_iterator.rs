@@ -1,4 +1,4 @@
-// This file was generated with `cornucopia`. Do not modify.
+// This file was generated with `clorinde`. Do not modify.
 
 use super::utils::escape_domain;
 use fallible_iterator::FallibleIterator;

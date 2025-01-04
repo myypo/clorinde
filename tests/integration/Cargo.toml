@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Path dependencies
-cornucopia = { path = "../../crates/cornucopia" }
+clorinde = { path = "../../crates/clorinde" }
 
 # Create temporary projects for error tests.
 tempfile = "3.5.0"

@@ -4,8 +4,8 @@ name = "basic-async-wasm"
 version = "0.1.0"
 
 [dependencies]
-# Cornucopia with wasm feature
-cornucopia = { path = "basic_async_wasm_codegen", package = "basic_async_wasm_codegen", default-features = false, features = ["wasm-async"] }
+# Clorinde with wasm feature
+clorinde = { path = "basic_async_wasm_codegen", package = "basic_async_wasm_codegen", default-features = false, features = ["wasm-async"] }
 
 tokio = { version = "1.28.1", default-features = false, features = ["macros", "rt"] }
 futures = "0.3.28"

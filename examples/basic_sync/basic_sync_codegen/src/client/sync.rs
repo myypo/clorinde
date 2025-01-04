@@ -1,4 +1,4 @@
-// This file was generated with `cornucopia`. Do not modify.
+// This file was generated with `clorinde`. Do not modify.
 
 use postgres::Statement;
 /// This trait allows you to bind parameters to a query using a single

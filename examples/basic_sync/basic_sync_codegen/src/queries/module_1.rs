@@ -1,4 +1,4 @@
-// This file was generated with `cornucopia`. Do not modify.
+// This file was generated with `clorinde`. Do not modify.
 
 use postgres::{fallible_iterator::FallibleIterator, GenericClient};
 pub fn insert_book() -> InsertBookStmt {

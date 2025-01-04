@@ -15,7 +15,7 @@ pub use cargo::DependencyAnalysis;
 
 use self::{types::gen_type_modules, vfs::Vfs};
 
-const WARNING: &str = "// This file was generated with `cornucopia`. Do not modify.\n\n";
+const WARNING: &str = "// This file was generated with `clorinde`. Do not modify.\n\n";
 
 /// Module when codegen is happening
 pub enum ModCtx {

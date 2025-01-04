@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# Cornucopia
-cornucopia = { path = "basic_sync_codegen", package = "basic_sync_codegen" }
+# Clorinde
+clorinde = { path = "basic_sync_codegen", package = "basic_sync_codegen" }
 

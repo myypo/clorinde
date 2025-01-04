@@ -66,8 +66,8 @@ checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
 name = "basic-async"
 version = "0.1.0"
 dependencies = [
- "cornucopia",
- "cornucopia_async",
+ "clorinde",
+ "clorinde_async",
  "deadpool-postgres",
  "futures",
  "postgres-types",
@@ -176,7 +176,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "cornucopia"
+name = "clorinde"
 version = "0.9.0"
 dependencies = [
  "async-trait",
@@ -197,19 +197,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "cornucopia_async"
+name = "clorinde_async"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38063b8553edf452cccc674f07b3b5e3144a24712e46647bfc357040f25fdc12"
 dependencies = [
  "async-trait",
- "cornucopia_client_core",
+ "clorinde_client_core",
  "deadpool-postgres",
  "tokio-postgres",
 ]
 
 [[package]]
-name = "cornucopia_client_core"
+name = "clorinde_client_core"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95a087271917ca54f32499539f3f44c8dc112ffea0f39f47d6cde075df8d2f18"

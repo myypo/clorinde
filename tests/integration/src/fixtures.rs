@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cornucopia::CodegenSettings;
+use clorinde::CodegenSettings;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

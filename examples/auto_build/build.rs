@@ -1,6 +1,6 @@
-use cornucopia::{CodegenSettings, Error};
+use clorinde::{CodegenSettings, Error};
 
-// This script will generate a new cornucopia crate every time your schema or queries change.
+// This script will generate a new clorinde crate every time your schema or queries change.
 // In this example, we generate the module in our project, but
 // we could also generate it elsewhere
 
@@ -20,7 +20,7 @@ fn main() -> Result<(), Error> {
     if run_build.is_ok() {
         println!("cargo:rerun-if-changed={queries_path}");
         println!("cargo:rerun-if-changed={schema_file}");
-        cornucopia::gen_managed(queries_path, &[schema_file], destination, false, settings)?;
+        clorinde::gen_managed(queries_path, &[schema_file], destination, false, settings)?;
     }
 
     Ok(())

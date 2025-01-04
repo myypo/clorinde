@@ -1,4 +1,4 @@
-// This file was generated with `cornucopia`. Do not modify.
+// This file was generated with `clorinde`. Do not modify.
 
 use super::generic_client::GenericClient;
 use async_trait::async_trait;

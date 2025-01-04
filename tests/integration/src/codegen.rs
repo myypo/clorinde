@@ -3,7 +3,7 @@ use crate::{
     utils::{reset_db, rustfmt_lib},
 };
 
-use cornucopia::{CodegenSettings, Error};
+use clorinde::{CodegenSettings, Error};
 use owo_colors::OwoColorize;
 use std::{env::set_current_dir, process::Command};
 use tempfile::tempdir;
@@ -29,13 +29,13 @@ pub(crate) fn run_codegen_test(
             set_current_dir(format!("../../{}", test.base_path))?;
 
             // Load schema
-            cornucopia::load_schema(client, &["schema.sql"])?;
+            clorinde::load_schema(client, &["schema.sql"])?;
 
             // If `--apply`, then the code will be regenerated.
             // Otherwise, it is only checked.
             if apply {
                 // Generate
-                cornucopia::gen_live(
+                clorinde::gen_live(
                     client,
                     &test.queries_path,
                     &test.destination,
@@ -48,11 +48,11 @@ pub(crate) fn run_codegen_test(
                 let tmp_path = tmp_dir.path().join(
                     test.destination
                         .file_name()
-                        .unwrap_or("cornucopia".as_ref()),
+                        .unwrap_or("clorinde".as_ref()),
                 );
                 std::fs::create_dir(&tmp_path)?;
                 // Generate
-                cornucopia::gen_live(
+                clorinde::gen_live(
                     client,
                     &test.queries_path,
                     &tmp_path,

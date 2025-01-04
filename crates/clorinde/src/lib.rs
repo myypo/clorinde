@@ -11,7 +11,7 @@ mod validation;
 
 /// Helpers to establish connections to database instances.
 pub mod conn;
-/// High-level interfaces to work with Cornucopia's container manager.
+/// High-level interfaces to work with Clorinde's container manager.
 pub mod container;
 
 use std::path::Path;
@@ -64,7 +64,7 @@ pub fn gen_live<P: AsRef<Path>>(
 }
 
 /// Generates Rust queries from PostgreSQL queries located at `queries_path`, using
-/// a container managed by cornucopia. The database schema is created using `schema_files`.
+/// a container managed by clorinde. The database schema is created using `schema_files`.
 /// Code generation settings are set using the `settings` parameter.
 ///
 /// By default, the container manager is Docker, but Podman can be used by setting the
@@ -82,7 +82,7 @@ pub fn gen_managed<P: AsRef<Path>>(
         .map(parse_query_module)
         .collect::<Result<_, parser::error::Error>>()?;
     container::setup(podman)?;
-    let mut client = conn::cornucopia_conn()?;
+    let mut client = conn::clorinde_conn()?;
     load_schema(&mut client, schema_files)?;
     let prepared_modules = prepare(&mut client, modules)?;
     let generated = codegen::gen(
@@ -101,5 +101,5 @@ fn extract_name(destination: &Path) -> &str {
     destination
         .file_name()
         .and_then(|n| n.to_str())
-        .unwrap_or("cornucopia")
+        .unwrap_or("clorinde")
 }

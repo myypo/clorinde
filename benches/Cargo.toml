@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Path dependencies
-cornucopia = { path = "../crates/cornucopia" }
+clorinde = { path = "../crates/clorinde" }
 
 # benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
