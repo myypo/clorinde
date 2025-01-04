@@ -257,7 +257,6 @@ name = "basic_sync"
 version = "0.1.0"
 dependencies = [
  "basic_sync_codegen",
- "postgres",
 ]
 
 [[package]]

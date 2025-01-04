@@ -8,6 +8,4 @@ edition = "2021"
 [dependencies]
 # Cornucopia
 cornucopia = { path = "basic_sync_codegen", package = "basic_sync_codegen" }
-# Postgres interaction
-postgres = "0.19.4"
 

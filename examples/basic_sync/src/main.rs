@@ -102,8 +102,9 @@ pub fn main() {
 ///
 /// This is just a simple example config, please look at
 /// `postgres` for details.
-use postgres::{Config, NoTls};
-fn get_client() -> Result<postgres::Client, postgres::Error> {
+use cornucopia::postgres::{Client, Config, Error, NoTls};
+
+fn get_client() -> Result<Client, Error> {
     Config::new()
         .user("postgres")
         .password("postgres")

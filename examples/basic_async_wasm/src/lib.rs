@@ -113,8 +113,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 use cornucopia::tokio_postgres::{Client, Config, NoTls};
-use std::io::prelude::*;
-use std::net::TcpStream;
 use worker::Socket;
 
 pub async fn create_db_client() -> Result<Client, Box<dyn std::error::Error>> {
@@ -126,9 +124,8 @@ pub async fn create_db_client() -> Result<Client, Box<dyn std::error::Error>> {
     cfg.dbname(String::from("postgres"));
 
     let socket = Socket::builder().connect("127.0.0.1", 5435)?;
-    let mut stream = TcpStream::connect("127.0.0.1:5435")?;
 
-    let (client, connection) = cfg.connect_raw(stream, NoTls).await.unwrap();
+    let (client, connection) = cfg.connect_raw(socket, NoTls).await.unwrap();
 
     wasm_bindgen_futures::spawn_local(async move {
         if let Err(e) = connection.await {

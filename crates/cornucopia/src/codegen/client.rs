@@ -34,6 +34,8 @@ pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
         pub use deadpool_postgres;
         #[cfg(any(feature = "deadpool", feature = "wasm-async"))]
         pub use tokio_postgres;
+        #[cfg(not(any(feature = "deadpool", feature = "wasm-async")))]
+        pub use postgres;
     );
     if dependency_analysis.json {
         code!(w => pub use type_traits::JsonSql; )
