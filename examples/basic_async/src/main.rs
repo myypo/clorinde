@@ -1,7 +1,7 @@
-// Take a look at the generated `cornucopia.rs` file if you want to
+// Take a look at the generated `cornucopia` crate if you want to
 // see what it looks like under the hood.
-mod cornucopia;
-use crate::cornucopia::{
+use cornucopia::{
+    client::Params,
     queries::{
         module_1::insert_book,
         module_2::{
@@ -9,9 +9,8 @@ use crate::cornucopia::{
             select_voice_actor_with_character, AuthorNameStartingWithParams,
         },
     },
-    types::public::SpongeBobCharacter,
+    types::SpongeBobCharacter,
 };
-use cornucopia_async::Params;
 
 #[tokio::main]
 pub async fn main() {
@@ -110,8 +109,8 @@ pub async fn main() {
 ///
 /// This is just a simple example config, please look at
 /// `tokio_postgres` and `deadpool_postgres` for details.
-use deadpool_postgres::{Config, CreatePoolError, Pool, Runtime};
-use tokio_postgres::NoTls;
+use cornucopia::deadpool_postgres::{Config, CreatePoolError, Pool, Runtime};
+use cornucopia::tokio_postgres::NoTls;
 
 async fn create_pool() -> Result<Pool, CreatePoolError> {
     let mut cfg = Config::new();
