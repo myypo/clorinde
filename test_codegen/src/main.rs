@@ -1,3 +1,4 @@
+use chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, NaiveTime};
 use eui48::MacAddress;
 use postgres::{Client, Config, NoTls};
 use rust_decimal::Decimal;
@@ -7,7 +8,6 @@ use std::{
     collections::HashMap,
     net::{IpAddr, Ipv4Addr},
 };
-use time::{OffsetDateTime, PrimitiveDateTime};
 use uuid::Uuid;
 
 use codegen::{
@@ -366,15 +366,11 @@ pub fn test_domain(client: &mut Client) {
 
 // Test hard cases
 pub fn test_stress(client: &mut Client) {
-    let primitive_datetime_format =
-        time::format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
-    let primitive_datetime =
-        PrimitiveDateTime::parse("2020-01-02 03:04:05", &primitive_datetime_format).unwrap();
-    let offset_datetime = OffsetDateTime::parse(
-        "1985-04-12T23:20:50.52Z",
-        &time::format_description::well_known::Rfc3339,
-    )
-    .unwrap();
+    let naive_datetime =
+        NaiveDateTime::parse_from_str("2020-01-02 03:04:05", "%Y-%m-%d %H:%M:%S").unwrap();
+    let offset_datetime =
+        DateTime::<FixedOffset>::parse_from_rfc3339("1985-04-12T23:20:50.52Z").unwrap();
+
     let json: Value = serde_json::from_str("{}").unwrap();
 
     // Every supported type
@@ -401,12 +397,12 @@ pub fn test_stress(client: &mut Client) {
         text_: String::from("hello"),
         varchar_: String::from("hello"),
         bytea_: vec![222u8, 173u8, 190u8, 239u8],
-        timestamp_: primitive_datetime,
-        timestamp_without_time_zone_: primitive_datetime,
+        timestamp_: naive_datetime,
+        timestamp_without_time_zone_: naive_datetime,
         timestamptz_: offset_datetime,
         timestamp_with_time_zone_: offset_datetime,
-        date_: time::Date::from_calendar_date(1999, time::Month::January, 8).unwrap(),
-        time_: time::Time::from_hms_milli(4, 5, 6, 789).unwrap(),
+        date_: NaiveDate::from_ymd_opt(1999, 1, 8).unwrap(),
+        time_: NaiveTime::from_hms_milli_opt(4, 5, 6, 789).unwrap(),
         json_: json.clone(),
         jsonb_: json.clone(),
         uuid_: Uuid::parse_str("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11").unwrap(),
@@ -442,10 +438,10 @@ pub fn test_stress(client: &mut Client) {
         smallserial_: expected.smallserial_,
         text_: expected.text_.as_str(),
         time_: expected.time_,
-        timestamp_: expected.timestamp_,
-        timestamp_with_time_zone_: expected.timestamp_with_time_zone_,
-        timestamp_without_time_zone_: expected.timestamp_without_time_zone_,
-        timestamptz_: expected.timestamptz_,
+        timestamp_: naive_datetime,
+        timestamp_with_time_zone_: offset_datetime,
+        timestamp_without_time_zone_: naive_datetime,
+        timestamptz_: offset_datetime,
         uuid_: expected.uuid_,
         varchar_: &expected.varchar_,
         numeric_: Decimal::new(202, 2),
@@ -472,12 +468,12 @@ pub fn test_stress(client: &mut Client) {
         text_: vec![String::from("hello")],
         varchar_: vec![String::from("hello")],
         bytea_: vec![vec![222u8, 173u8, 190u8, 239u8]],
-        timestamp_: vec![primitive_datetime],
-        timestamp_without_time_zone_: vec![primitive_datetime],
+        timestamp_: vec![naive_datetime],
+        timestamp_without_time_zone_: vec![naive_datetime],
         timestamptz_: vec![offset_datetime],
         timestamp_with_time_zone_: vec![offset_datetime],
-        date_: vec![time::Date::from_calendar_date(1999, time::Month::January, 8).unwrap()],
-        time_: vec![time::Time::from_hms_milli(4, 5, 6, 789).unwrap()],
+        date_: vec![NaiveDate::from_ymd_opt(1999, 1, 8).unwrap()],
+        time_: vec![NaiveTime::from_hms_milli_opt(4, 5, 6, 789).unwrap()],
         json_: vec![json.clone()],
         jsonb_: vec![json.clone()],
         uuid_: vec![Uuid::parse_str("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11").unwrap()],

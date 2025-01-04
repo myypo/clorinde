@@ -8,7 +8,7 @@ use crate::CodegenSettings;
 /// Register use of typed requiring specific dependencies
 #[derive(Debug, Clone, Default)]
 pub struct DependencyAnalysis {
-    pub time: bool,
+    pub chrono: bool,
     pub json: bool,
     pub uuid: bool,
     pub mac_addr: bool,
@@ -19,7 +19,7 @@ impl DependencyAnalysis {
     pub fn analyse(&mut self, ty: &Type) {
         match ty.kind() {
             Kind::Simple => match *ty {
-                Type::TIME | Type::DATE | Type::TIMESTAMP | Type::TIMESTAMPTZ => self.time = true,
+                Type::TIME | Type::DATE | Type::TIMESTAMP | Type::TIMESTAMPTZ => self.chrono = true,
                 Type::JSON | Type::JSONB => self.json = true,
                 Type::UUID => self.uuid = true,
                 Type::MACADDR => self.mac_addr = true,
@@ -38,7 +38,7 @@ impl DependencyAnalysis {
     }
 
     pub fn has_dependency(&self) -> bool {
-        self.time | self.json | self.uuid | self.mac_addr | self.decimal
+        self.chrono | self.json | self.uuid | self.mac_addr | self.decimal
     }
 }
 
@@ -93,13 +93,13 @@ pub fn gen_cargo_file(
             .unwrap();
             write!(client_features, r#""with-serde_json-1","#).unwrap();
         }
-        if dependency_analysis.time {
+        if dependency_analysis.chrono {
             writedoc! { buf, r#"
                 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
-                time = "0.3.34"
+                chrono = "0.4.39"
             "#}
             .unwrap();
-            write!(client_features, r#""with-time-0_3","#).unwrap();
+            write!(client_features, r#""with-chrono-0_4","#).unwrap();
         }
         if dependency_analysis.uuid {
             writedoc! { buf, r#"
@@ -112,7 +112,7 @@ pub fn gen_cargo_file(
         if dependency_analysis.mac_addr {
             writedoc! { buf, r#"
                 # MAC ADDRESS
-                eui48 = "1.1.0"
+                eui48 = {{ version = "1.1.0", default-features = false }}
             "#}
             .unwrap();
             write!(client_features, r#""with-eui48-1","#).unwrap();
