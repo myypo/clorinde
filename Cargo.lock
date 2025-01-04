@@ -147,10 +147,9 @@ name = "auto-build"
 version = "0.1.0"
 dependencies = [
  "auto_build_codegen",
- "deadpool-postgres",
+ "cornucopia",
  "futures",
  "tokio",
- "tokio-postgres",
 ]
 
 [[package]]

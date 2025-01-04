@@ -1,7 +1,7 @@
-use deadpool_postgres::{Config, Runtime};
-use tokio_postgres::NoTls;
+use codegen::deadpool_postgres::{Config, Runtime};
+use codegen::tokio_postgres::NoTls;
 
-// Take a look at the generated `cornucopia` crate if you want to
+// Take a look at the generated `cornucopia` (codegen) crate if you want to
 // see what it looks like under the hood.
 use codegen::queries::module_1::example_query;
 

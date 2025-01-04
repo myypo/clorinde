@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Cornucopia
+# Cornucopia (codegen)
 codegen = { path = "auto_build_codegen", package = "auto_build_codegen" }
+
 # Async
 tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
 futures = "0.3.28"
-# Postgres interaction
-tokio-postgres = "0.7.8"
-# Connection pooling
-deadpool-postgres = "0.14.0"
+
+[build-dependencies]
+# Cornucopia (cli/api)
+cornucopia = { path = "../../crates/cornucopia", package = "cornucopia" }
