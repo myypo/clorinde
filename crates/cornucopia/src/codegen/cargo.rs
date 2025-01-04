@@ -57,14 +57,36 @@ pub fn gen_cargo_file(
     "#};
 
     if settings.gen_async {
+        let mut wasm_features = vec!["\"tokio-postgres/js\""];
+        if dependency_analysis.has_dependency() && dependency_analysis.chrono {
+            wasm_features.push("\"chrono/wasmbind\"");
+        }
+
+        let wasm_features = wasm_features.join(", ");
+
         writedoc! { buf, r#"
             
             [features]
             default = ["deadpool"]
             deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
-            wasm = ["tokio-postgres/js"]
+            wasm-async = [{wasm_features}]
         "#}
         .unwrap()
+    } else {
+        let mut wasm_features = vec![];
+        if dependency_analysis.has_dependency() && dependency_analysis.chrono {
+            wasm_features.push("\"chrono/wasmbind\"");
+        }
+
+        let wasm_features = wasm_features.join(", ");
+
+        writedoc! { buf, r#"
+
+            [features]
+            default = []
+            wasm-sync = [{wasm_features}]
+        "#}
+        .unwrap();
     }
 
     writedoc! { buf, r#"

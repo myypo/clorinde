@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 default = ["deadpool"]
 deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
-wasm = ["tokio-postgres/js"]
+wasm-async = ["tokio-postgres/js", "chrono/wasmbind"]
 
 [dependencies]
 ## Core dependencies

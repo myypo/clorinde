@@ -1,6 +1,6 @@
 # This file was generated with `cornucopia`. Do not modify
 [package]
-name = "auto_build_codegen"
+name = "basic_async_wasm_codegen"
 version = "0.9.0"
 edition = "2021"
 

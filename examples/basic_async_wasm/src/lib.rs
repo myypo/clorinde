@@ -1,4 +1,4 @@
-// Take a look at the generated `cornucopia.rs` file if you want to
+// Take a look at the generated `cornucopia` crate if you want to
 // see what it looks like under the hood.
 use cornucopia::{
     client::Params,
@@ -12,51 +12,61 @@ use cornucopia::{
     types::SpongeBobCharacter,
 };
 
-pub fn main() {
-    // You can learn which database connection types are compatible with Cornucopia in the book
-    // https://cornucopia-rs.netlify.app/book/using_queries/db_connections.html
-    let mut client = get_client().unwrap();
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
-    // The `all` method returns queried rows collected into a `Vec`
-    let authors = authors().bind(&mut client).all().unwrap();
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub async fn start() -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+    run().await.map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let mut client = create_db_client().await?;
+
+    let authors = authors().bind(&client).all().await.unwrap();
     dbg!(authors);
 
     // Queries also accept transactions. Let's see how that works.
     {
         // Once you've created a transaction, you can pass it to your queries
         // just like you would with a regular query. Nothing special to do.
-        let mut transaction = client.transaction().unwrap();
+        let transaction = client.transaction().await.unwrap();
 
         // Insertions work just like any other query.
         // Note that queries with a void return type (such as regular insertions)
         // are executed as soon as you `bind` their parameters.
         insert_book()
-            .bind(&mut transaction, &"The Great Gatsby")
+            .bind(&transaction, &"The Great Gatsby")
+            .await
             .unwrap();
 
         // Bind parameters are "smart". A query that expects a `&str` will also accept other
         // "string-like" types like `String`. See https://cornucopia-rs.netlify.app/book/using_queries/ergonomic_parameters.html
         // for more details.
         insert_book()
-            .bind(&mut transaction, &String::from("Moby Dick"))
+            .bind(&transaction, &String::from("Moby Dick"))
+            .await
             .unwrap();
 
         // You can use a `map` to transform query results ergonomically.
         let uppercase_books = books()
-            .bind(&mut transaction)
+            .bind(&transaction)
             .map(|book_title| book_title.to_uppercase())
             .all()
+            .await
             .unwrap();
         dbg!(uppercase_books);
 
         // Don't forget to `commit` when you're done with the transaction!
         // Otherwise, it will be rolled back without further effect.
-        transaction.commit().unwrap();
+        transaction.commit().await.unwrap();
     }
 
     // Using `opt` returns an optional row (zero or one).
     // Any other number of rows will return an error.
-    let author_name = author_name_by_id().bind(&mut client, &0).opt().unwrap();
+    let author_name = author_name_by_id().bind(&client, &0).opt().await.unwrap();
     dbg!(author_name);
 
     // Using named structs as parameters and rows can be more convenient
@@ -68,14 +78,14 @@ pub fn main() {
     // !    general information and the `queries/module_2.sql` file to see how this particular
     // !    parameter type was created).
     // ! 2. Import the `Params` trait.
-    let name_starting_with_jo = author_name_starting_with()
-        .params(
-            &mut client,
-            &AuthorNameStartingWithParams { start_str: "Jo" },
-        )
-        .all()
-        .unwrap();
-    dbg!(name_starting_with_jo);
+    println!(
+        "{:?}",
+        author_name_starting_with()
+            .params(&client, &AuthorNameStartingWithParams { start_str: "Jo" })
+            .all()
+            .await
+            .unwrap()
+    );
 
     // Custom PostgreSQL types from your queries also work!
     // This includes domains, composites and enums.
@@ -83,32 +93,48 @@ pub fn main() {
     // You can use them as bind parameters (as shown here)
     // or receive them in returned rows.
     let patrick_voice_actor = select_voice_actor_with_character()
-        .bind(&mut client, &SpongeBobCharacter::Patrick)
+        .bind(&client, &SpongeBobCharacter::Patrick)
         .one()
+        .await
         .unwrap();
     dbg!(patrick_voice_actor);
 
     // Cornucopia also supports PostgreSQL arrays, which you
     // can use as bind parameters or in returned rows.
     let translations = select_translations()
-        .bind(&mut client)
+        .bind(&client)
         .map(|row| format!("{}: {:?}", row.title, row.translations))
         .all()
+        .await
         .unwrap();
     dbg!(translations);
+
+    Ok(())
 }
 
-/// Connection client configuration.
-///
-/// This is just a simple example config, please look at
-/// `postgres` for details.
-use postgres::{Config, NoTls};
-fn get_client() -> Result<postgres::Client, postgres::Error> {
-    Config::new()
-        .user("postgres")
-        .password("postgres")
-        .host("127.0.0.1")
-        .port(5435)
-        .dbname("postgres")
-        .connect(NoTls)
+use cornucopia::tokio_postgres::{Client, Config, NoTls};
+use std::io::prelude::*;
+use std::net::TcpStream;
+use worker::Socket;
+
+pub async fn create_db_client() -> Result<Client, Box<dyn std::error::Error>> {
+    let mut cfg = Config::new();
+    cfg.user(String::from("postgres"));
+    cfg.password(String::from("postgres"));
+    cfg.host(String::from("127.0.0.1"));
+    cfg.port(5435);
+    cfg.dbname(String::from("postgres"));
+
+    let socket = Socket::builder().connect("127.0.0.1", 5435)?;
+    let mut stream = TcpStream::connect("127.0.0.1:5435")?;
+
+    let (client, connection) = cfg.connect_raw(stream, NoTls).await.unwrap();
+
+    wasm_bindgen_futures::spawn_local(async move {
+        if let Err(e) = connection.await {
+            eprintln!("connection error: {}", e);
+        }
+    });
+
+    Ok(client)
 }

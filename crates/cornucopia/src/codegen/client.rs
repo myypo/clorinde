@@ -32,7 +32,7 @@ pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
 
         #[cfg(feature = "deadpool")]
         pub use deadpool_postgres;
-        #[cfg(feature = "deadpool")]
+        #[cfg(any(feature = "deadpool", feature = "wasm-async"))]
         pub use tokio_postgres;
     );
     if dependency_analysis.json {
