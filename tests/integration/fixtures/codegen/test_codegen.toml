@@ -1,6 +1,6 @@
 [[test]]
 name = "Codegen"
-base_path = "test_codegen"
+base_path = "tests/codegen"
 destination = "codegen"
 sync = true
 async = true
