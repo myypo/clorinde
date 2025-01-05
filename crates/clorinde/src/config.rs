@@ -61,7 +61,7 @@ impl Config {
         Ok(config)
     }
 
-    pub fn get_type_mapping(&self, ty: &Type) -> Option<&TypeMapping> {
+    pub(crate) fn get_type_mapping(&self, ty: &Type) -> Option<&TypeMapping> {
         let key = format!("{}.{}", ty.schema(), ty.name());
         self.types.mapping.get(&key)
     }
