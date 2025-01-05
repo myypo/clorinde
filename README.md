@@ -1,4 +1,4 @@
-![cool hat](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/assets/clorinde_hat.png)
+![cool hat](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/assets/clorinde_hat.png)
 
 # Clorinde
 Clorinde is a tool powered by [`rust-postgres`](https://github.com/sfackler/rust-postgres) designed to generate type-checked Rust interfaces from your PostgreSQL queries. It works by preparing your queries against an actual database and then running an extensive validation suite on them. Once the queries are prepared and validated, Rust code is generated into a module, which can be imported and used in your project.

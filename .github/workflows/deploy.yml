@@ -1,8 +1,10 @@
-name: Deploy
+name: Deploy book to GitHub pages
 on:
   push:
     branches:
       - main
+    paths:
+      - "docs/**"
 
 jobs:
   deploy:
