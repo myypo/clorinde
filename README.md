@@ -1,5 +1,7 @@
+![cool hat](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/assets/clorinde_hat.png)
+
 # Clorinde
-Clorinde is a tool powered by [`rust-postgres`](https://github.com/sfackler/rust-postgres) designed to generate type-checked Rust interfaces from your PostgreSQL queries. It works by preparing your queries against an actual database and then running an extensive validation suite on them. Once the queries are prepared and validated, Rust code is generated into a module, which can be imported and used in your project. 
+Clorinde is a tool powered by [`rust-postgres`](https://github.com/sfackler/rust-postgres) designed to generate type-checked Rust interfaces from your PostgreSQL queries. It works by preparing your queries against an actual database and then running an extensive validation suite on them. Once the queries are prepared and validated, Rust code is generated into a module, which can be imported and used in your project.
 
 The basic premise is thus to:
 1. Write your PostgreSQL queries.
@@ -31,7 +33,7 @@ Let's say you have the following PostgreSQL queries
 SELECT first_name, last_name, country FROM Authors;
 
 --! insert_author
-INSERT INTO Authors(first_name, last_name, country) 
+INSERT INTO Authors(first_name, last_name, country)
 VALUES (:first_name, :last_name, :country)
 ```
 Notice the query annotations (`--! authors`, `--! insert_authors`) and the named bind parameters (`:first_name`, etc.).
@@ -49,9 +51,9 @@ insert_author.bind(&client, "Agatha", "Christie", "England");
 let all_authors = authors().bind(&client).all();
 
 for author in all_authors {
-  println!("[{}] {}, {}", 
-    author.country, 
-    author.last_name.to_uppercase(), 
+  println!("[{}] {}, {}",
+    author.country,
+    author.last_name.to_uppercase(),
     author.first_name
   )
 }
