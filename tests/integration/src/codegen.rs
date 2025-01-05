@@ -45,11 +45,9 @@ pub(crate) fn run_codegen_test(
                 // Format the generated crate
                 rustfmt_lib(&test.destination);
             } else {
-                let tmp_path = tmp_dir.path().join(
-                    test.destination
-                        .file_name()
-                        .unwrap_or("clorinde".as_ref()),
-                );
+                let tmp_path = tmp_dir
+                    .path()
+                    .join(test.destination.file_name().unwrap_or("clorinde".as_ref()));
                 std::fs::create_dir(&tmp_path)?;
                 // Generate
                 clorinde::gen_live(
