@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use clorinde::CodegenSettings;
+use clorinde::{config::Config, CodegenSettings};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -60,6 +60,8 @@ pub(crate) struct CodegenTest {
     pub(crate) derive_ser: bool,
     #[serde(default)]
     pub(crate) run: bool,
+    #[serde(default)]
+    pub(crate) config: bool,
 }
 
 fn default_queries_path() -> PathBuf {
@@ -72,6 +74,10 @@ impl From<&CodegenTest> for CodegenSettings {
             gen_async: codegen_test.r#async || !codegen_test.sync,
             gen_sync: codegen_test.sync,
             derive_ser: codegen_test.derive_ser,
+            config: match codegen_test.config {
+                true => Config::from_file(Path::new("./clorinde.toml")).unwrap(),
+                false => Default::default(),
+            },
         }
     }
 }
@@ -91,6 +97,7 @@ impl From<&ErrorTest> for CodegenSettings {
             derive_ser: false,
             gen_async: false,
             gen_sync: true,
+            config: Default::default(),
         }
     }
 }

@@ -12,6 +12,7 @@ fn main() -> Result<(), Error> {
         gen_async: true,
         gen_sync: false,
         derive_ser: false,
+        config: Default::default(),
     };
 
     // This can be removed in your code

@@ -397,7 +397,7 @@ fn gen_query_module(module: &PreparedModule, settings: CodegenSettings) -> Strin
 
 pub(crate) fn gen_queries(vfs: &mut Vfs, preparation: &Preparation, settings: CodegenSettings) {
     for module in &preparation.modules {
-        let gen = gen_query_module(module, settings);
+        let gen = gen_query_module(module, settings.clone());
         vfs.add(format!("src/queries/{}.rs", module.info.name), gen);
     }
 

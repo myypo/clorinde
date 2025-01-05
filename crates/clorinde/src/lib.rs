@@ -9,10 +9,13 @@ mod type_registrar;
 mod utils;
 mod validation;
 
+pub mod config;
 /// Helpers to establish connections to database instances.
 pub mod conn;
 /// High-level interfaces to work with Clorinde's container manager.
 pub mod container;
+
+use config::Config;
 
 use std::path::Path;
 
@@ -29,11 +32,12 @@ pub use error::Error;
 pub use load_schema::load_schema;
 
 /// Struct containing the settings for code generation.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct CodegenSettings {
     pub gen_async: bool,
     pub gen_sync: bool,
     pub derive_ser: bool,
+    pub config: Config,
 }
 
 /// Generates Rust queries from PostgreSQL queries located at `queries_path`,
@@ -51,7 +55,7 @@ pub fn gen_live<P: AsRef<Path>>(
         .map(parse_query_module)
         .collect::<Result<_, parser::error::Error>>()?;
     // Generate
-    let prepared_modules = prepare(client, modules)?;
+    let prepared_modules = prepare(client, modules, settings.clone())?;
     let generated = codegen::gen(
         extract_name(destination.as_ref()),
         prepared_modules,
@@ -84,7 +88,7 @@ pub fn gen_managed<P: AsRef<Path>>(
     container::setup(podman)?;
     let mut client = conn::clorinde_conn()?;
     load_schema(&mut client, schema_files)?;
-    let prepared_modules = prepare(&mut client, modules)?;
+    let prepared_modules = prepare(&mut client, modules, settings.clone())?;
     let generated = codegen::gen(
         extract_name(destination.as_ref()),
         prepared_modules,

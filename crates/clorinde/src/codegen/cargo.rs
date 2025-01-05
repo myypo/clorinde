@@ -102,6 +102,24 @@ pub fn gen_cargo_file(
     "#}
     .unwrap();
 
+    if !settings.config.types.mapping.is_empty() {
+        if let Some(crate_info) = settings.config.types.crate_info {
+            let name = crate_info.name;
+            let path = crate_info.path;
+            writedoc! { buf, r#"
+
+                {name}= {{ path = "{path}" }}
+            "#}
+            .unwrap();
+        } else {
+            writedoc! { buf, r#"
+
+                ctypes = {{ path = "../ctypes" }}
+            "#}
+            .unwrap();
+        }
+    }
+
     let mut client_features = String::new();
 
     if dependency_analysis.has_dependency() {

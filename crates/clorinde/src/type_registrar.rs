@@ -6,6 +6,7 @@ use postgres_types::{Kind, Type};
 
 use crate::{
     codegen::{idx_char, DependencyAnalysis, GenCtx},
+    config::Config,
     parser::Span,
     read_queries::ModuleInfo,
     utils::SchemaKey,
@@ -18,7 +19,7 @@ use self::error::Error;
 pub(crate) enum ClorindeType {
     Simple {
         pg_ty: Type,
-        rust_name: &'static str,
+        rust_name: String,
         is_copy: bool,
     },
     Array {
@@ -44,9 +45,7 @@ impl ClorindeType {
                 Type::BYTEA | Type::TEXT | Type::VARCHAR | Type::JSON | Type::JSONB => false,
                 _ => !self.is_copy(),
             },
-            ClorindeType::Domain { inner, .. } | ClorindeType::Array { inner } => {
-                inner.is_ref()
-            }
+            ClorindeType::Domain { inner, .. } | ClorindeType::Array { inner } => inner.is_ref(),
             _ => !self.is_copy(),
         }
     }
@@ -54,9 +53,7 @@ impl ClorindeType {
     /// Is this type copyable
     pub fn is_copy(&self) -> bool {
         match self {
-            ClorindeType::Simple { is_copy, .. } | ClorindeType::Custom { is_copy, .. } => {
-                *is_copy
-            }
+            ClorindeType::Simple { is_copy, .. } | ClorindeType::Custom { is_copy, .. } => *is_copy,
             ClorindeType::Domain { inner, .. } => inner.is_copy(),
             ClorindeType::Array { .. } => false,
         }
@@ -290,13 +287,22 @@ impl ClorindeType {
 }
 
 /// Data structure holding all types known to this particular run of Clorinde.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub(crate) struct TypeRegistrar {
     pub types: IndexMap<(String, String), Rc<ClorindeType>>,
     pub dependency_analysis: DependencyAnalysis,
+    config: Config,
 }
 
 impl TypeRegistrar {
+    pub(crate) fn new(config: Config) -> Self {
+        Self {
+            types: IndexMap::default(),
+            dependency_analysis: DependencyAnalysis::default(),
+            config,
+        }
+    }
+
     pub(crate) fn register(
         &mut self,
         name: &str,
@@ -320,6 +326,18 @@ impl TypeRegistrar {
                 pg_ty: ty.clone(),
                 inner,
             }
+        }
+
+        // check if there's a user-defined mapping first
+        if let Some(mapping) = self.config.clone().get_type_mapping(ty) {
+            return Ok(self.insert(ty, move || match mapping.kind.as_ref() {
+                "simple" => ClorindeType::Simple {
+                    pg_ty: ty.clone(),
+                    rust_name: mapping.rust_type.clone(),
+                    is_copy: mapping.is_copy,
+                },
+                _ => unimplemented!(),
+            }));
         }
 
         if let Some(idx) = self.types.get_index_of(&SchemaKey::from(ty)) {
@@ -384,7 +402,7 @@ impl TypeRegistrar {
                 };
                 self.insert(ty, || ClorindeType::Simple {
                     pg_ty: ty.clone(),
-                    rust_name,
+                    rust_name: rust_name.to_string(),
                     is_copy,
                 })
             }
@@ -406,7 +424,7 @@ impl TypeRegistrar {
             .clone()
     }
 
-    fn insert(&mut self, ty: &Type, call: impl Fn() -> ClorindeType) -> &Rc<ClorindeType> {
+    fn insert(&mut self, ty: &Type, call: impl FnOnce() -> ClorindeType) -> &Rc<ClorindeType> {
         let index = match self
             .types
             .entry((ty.schema().to_owned(), ty.name().to_owned()))

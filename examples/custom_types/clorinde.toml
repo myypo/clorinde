@@ -1,0 +1,2 @@
+[types.mapping]
+"pg_catalog.date" = { rust_type = "ctypes::date::Date" }

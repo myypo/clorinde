@@ -9,10 +9,9 @@ use crate::{
     codegen::{DependencyAnalysis, GenCtx, ModCtx},
     parser::{Module, NullableIdent, Query, Span, TypeAnnotation},
     read_queries::ModuleInfo,
-    type_registrar::ClorindeType,
-    type_registrar::TypeRegistrar,
+    type_registrar::{ClorindeType, TypeRegistrar},
     utils::KEYWORD,
-    validation,
+    validation, CodegenSettings,
 };
 
 use self::error::Error;
@@ -233,8 +232,12 @@ impl PreparedModule {
 }
 
 /// Prepares all modules
-pub(crate) fn prepare(client: &mut Client, modules: Vec<Module>) -> Result<Preparation, Error> {
-    let mut registrar = TypeRegistrar::default();
+pub(crate) fn prepare(
+    client: &mut Client,
+    modules: Vec<Module>,
+    settings: CodegenSettings,
+) -> Result<Preparation, Error> {
+    let mut registrar = TypeRegistrar::new(settings.config);
     let mut prepared_types: IndexMap<String, Vec<PreparedType>> = IndexMap::new();
     let mut prepared_modules = Vec::new();
 

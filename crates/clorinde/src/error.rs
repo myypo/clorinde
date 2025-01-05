@@ -24,6 +24,8 @@ pub enum Error {
     LoadSchema(#[from] crate::load_schema::error::Error),
     /// An error while trying to write the generated crate to its destination.
     PersistCrate(#[from] PersistError),
+    /// An error while trying to read the config flle
+    Config(#[from] crate::config::ConfigError),
 }
 
 impl Error {

@@ -2,7 +2,9 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::{conn, container, error::Error, gen_live, gen_managed, CodegenSettings};
+use crate::{
+    config::Config, conn, container, error::Error, gen_live, gen_managed, CodegenSettings,
+};
 
 /// Command line interface to interact with Clorinde SQL.
 #[derive(Parser, Debug)]
@@ -28,6 +30,9 @@ struct Args {
     /// Derive serde's `Serialize` trait for generated types.
     #[clap(long)]
     serialize: bool,
+    /// Config file path
+    #[clap(short, long, default_value = "clorinde.toml")]
+    config: PathBuf,
 }
 
 #[derive(Debug, Subcommand)]
@@ -54,12 +59,16 @@ pub fn run() -> Result<(), Error> {
         sync,
         r#async,
         serialize,
+        config,
     } = Args::parse();
+
+    let cfg = Config::from_file(config)?;
 
     let settings = CodegenSettings {
         gen_async: r#async || !sync,
         gen_sync: sync,
         derive_ser: serialize,
+        config: cfg,
     };
 
     match action {

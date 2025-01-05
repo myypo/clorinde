@@ -37,3 +37,7 @@ indexmap = "2.0.2"
 
 # Generate temporary files
 tempfile = "3.6.0"
+
+# Config handling
+serde = { version = "1.0.217", features = ["derive"] }
+toml = "0.8.19"
