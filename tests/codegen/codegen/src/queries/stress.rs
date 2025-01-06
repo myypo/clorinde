@@ -1,4 +1,3 @@
-// This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
 pub struct EverythingParams<
@@ -673,7 +672,8 @@ impl<'a> From<EverythingArrayNullBorrowed<'a>> for EverythingArrayNull {
             numeric_: numeric_.map(|v| v.map(|v| v).collect()),
         }
     }
-}
+} // This file was generated with `clorinde`. Do not modify.
+
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct EverythingQuery<'a, C: GenericClient, T, const N: usize> {

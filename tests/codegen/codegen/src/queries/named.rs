@@ -1,4 +1,3 @@
-// This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
 pub struct NamedParams<T1: crate::StringSql> {
@@ -65,7 +64,8 @@ impl<'a> From<NamedComplexBorrowed<'a>> for NamedComplex {
             named_with_dot,
         }
     }
-}
+} // This file was generated with `clorinde`. Do not modify.
+
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct IdQuery<'a, C: GenericClient, T, const N: usize> {

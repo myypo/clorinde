@@ -1,4 +1,3 @@
-// This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
 pub struct NullityParams<
@@ -36,7 +35,8 @@ impl<'a> From<NullityBorrowed<'a>> for Nullity {
             composite: composite.map(|v| v.into()),
         }
     }
-}
+} // This file was generated with `clorinde`. Do not modify.
+
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct NullityQuery<'a, C: GenericClient, T, const N: usize> {

@@ -18,6 +18,7 @@ use self::{types::gen_type_modules, vfs::Vfs};
 const WARNING: &str = "// This file was generated with `clorinde`. Do not modify.\n\n";
 
 /// Module when codegen is happening
+#[derive(Clone, Copy)]
 pub enum ModCtx {
     Types,         // crate::types
     SchemaTypes,   // crate::types::schema
@@ -25,6 +26,7 @@ pub enum ModCtx {
     CLientQueries, // crate::queries::sync
 }
 
+#[derive(Clone, Copy)]
 pub struct GenCtx {
     // Generated module position in the hierarchy
     pub hierarchy: ModCtx,

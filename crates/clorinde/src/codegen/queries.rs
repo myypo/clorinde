@@ -227,6 +227,8 @@ fn gen_query_fn<W: Write>(w: &mut W, module: &PreparedModule, query: &PreparedQu
             #[allow(clippy::type_complexity)]
             let (row_struct_name, extractor, mapper): (_, Box<dyn Fn(&mut W)>, _) = if *is_named {
                 let path = item.path(ctx);
+                let mut mapper = String::new();
+                code!(mapper => <$path>::from(it));
                 (
                     path.clone(),
                     Box::new(|w: _| {
@@ -238,7 +240,7 @@ fn gen_query_fn<W: Write>(w: &mut W, module: &PreparedModule, query: &PreparedQu
                             $($fields_name: row.get($fields_idx),)
                         })
                     }),
-                    code!(<$path>::from(it)),
+                    mapper,
                 )
             } else {
                 let field = &fields[0];
@@ -248,6 +250,7 @@ fn gen_query_fn<W: Write>(w: &mut W, module: &PreparedModule, query: &PreparedQu
                     field.owning_call(Some("it")),
                 )
             };
+
             code!(w =>
                 pub fn bind<'a, C: GenericClient,$($traits_idx: $traits,)>(&'a mut self, client: &'a $client_mut C, $($params_name: &'a $params_ty,) ) -> ${row_name}Query<'a,C, $row_struct_name, $nb_params> {
                     ${row_name}Query {
@@ -339,60 +342,84 @@ fn gen_query_fn<W: Write>(w: &mut W, module: &PreparedModule, query: &PreparedQu
 
 fn gen_query_module(module: &PreparedModule, settings: CodegenSettings) -> String {
     let ctx = GenCtx::new(ModCtx::Queries, settings.gen_async, settings.derive_ser);
-    let params_string = module
-        .params
-        .values()
-        .map(|params| |w: &mut String| gen_params_struct(w, params, &ctx));
-    let rows_struct_string = module
-        .rows
-        .values()
-        .map(|row| |w: &mut String| gen_row_structs(w, row, &ctx));
+    let mut w = String::new();
 
+    for params in module.params.values() {
+        gen_params_struct(&mut w, params, &ctx);
+    }
+
+    for row in module.rows.values() {
+        gen_row_structs(&mut w, row, &ctx);
+    }
+
+    // TODO: remove all the .clone()
     let sync_specific = |w: &mut String| {
-        let gen_specific = |hierarchy: ModCtx, is_async: bool| {
-            move |w: &mut String| {
-                let ctx = GenCtx::new(hierarchy, is_async, settings.derive_ser);
-                let import = if is_async {
-                    "use futures::{self, StreamExt, TryStreamExt}; use crate::client::async_::GenericClient;"
-                } else {
-                    "use postgres::{fallible_iterator::FallibleIterator,GenericClient};"
-                };
-                let rows_query_string = module
-                    .rows
-                    .values()
-                    .map(|row| |w: &mut String| gen_row_query(w, row, &ctx));
-                let queries_string = module
-                    .queries
-                    .values()
-                    .map(|query| |w: &mut String| gen_query_fn(w, module, query, &ctx));
-                code!(w =>
-                    $import
-                    $($!rows_query_string)
-                    $($!queries_string)
-                )
-            }
+        let gen_sync = {
+            let gs = gen_specific(
+                module.clone(),
+                settings.clone(),
+                ModCtx::CLientQueries,
+                false,
+            );
+            move |w: &mut String| gs(w)
+        };
+
+        let gen_async = {
+            let ga = gen_specific(
+                module.clone(),
+                settings.clone(),
+                ModCtx::CLientQueries,
+                true,
+            );
+            move |w: &mut String| ga(w)
         };
 
         if settings.gen_async && settings.gen_sync {
-            let gen = gen_specific(ModCtx::CLientQueries, false);
-            code!(w => pub mod sync { $!gen});
-
-            let gen = gen_specific(ModCtx::CLientQueries, true);
-            code!(w => pub mod async_ { $!gen});
+            code!(w =>
+                pub mod sync {
+                    $!gen_sync
+                }
+                pub mod async_ {
+                    $!gen_async
+                }
+            );
         } else if settings.gen_sync {
-            let gen = gen_specific(ModCtx::Queries, false);
-            code!(w =>  $!gen);
+            gen_specific(module.clone(), settings, ModCtx::Queries, false)(w);
         } else {
-            let gen = gen_specific(ModCtx::Queries, true);
-            code!(w =>  $!gen);
+            gen_specific(module.clone(), settings, ModCtx::Queries, true)(w);
         }
     };
 
-    code!($WARNING
-        $($!params_string)
-        $($!rows_struct_string)
-        $!sync_specific
-    )
+    code!(w => $WARNING);
+    sync_specific(&mut w);
+
+    w
+}
+
+fn gen_specific(
+    module: PreparedModule,
+    settings: CodegenSettings,
+    hierarchy: ModCtx,
+    is_async: bool,
+) -> impl Fn(&mut String) {
+    move |w: &mut String| {
+        let ctx = GenCtx::new(hierarchy, is_async, settings.derive_ser);
+        let import = if is_async {
+            "use futures::{self, StreamExt, TryStreamExt}; use crate::client::async_::GenericClient;"
+        } else {
+            "use postgres::{fallible_iterator::FallibleIterator,GenericClient};"
+        };
+
+        code!(w => $import);
+
+        for row in module.rows.values() {
+            gen_row_query(w, row, &ctx);
+        }
+
+        for query in module.queries.values() {
+            gen_query_fn(w, &module, query, &ctx);
+        }
+    }
 }
 
 pub(crate) fn gen_queries(vfs: &mut Vfs, preparation: &Preparation, settings: CodegenSettings) {
@@ -402,42 +429,44 @@ pub(crate) fn gen_queries(vfs: &mut Vfs, preparation: &Preparation, settings: Co
     }
 
     let modules_name = preparation.modules.iter().map(|module| &module.info.name);
+    let mut content = String::new();
 
-    let mut content = code!($WARNING
+    code!(content => $WARNING
         $(pub mod $modules_name;)
     );
+
     if settings.gen_async && settings.gen_sync {
-        let sync = |w: &mut String| {
-            for module in &preparation.modules {
-                let name = &module.info.name;
-                code!(w =>
-                    pub mod ${name} {
-                        pub use super::super::${name}::*;
-                        pub use super::super::${name}::sync::*;
-                    }
-                );
-            }
-        };
-        let async_ = |w: &mut String| {
-            for module in &preparation.modules {
-                let name = &module.info.name;
-                code!(w =>
-                    pub mod ${name} {
-                        pub use super::super::${name}::*;
-                        pub use super::super::${name}::async_::*;
-                    }
-                );
-            }
-        };
-        let content = &mut content;
+        let mut sync_content = String::new();
+        let mut async_content = String::new();
+
+        for module in &preparation.modules {
+            let name = &module.info.name;
+            code!(sync_content =>
+                pub mod ${name} {
+                    pub use super::super::${name}::*;
+                    pub use super::super::${name}::sync::*;
+                }
+            );
+        }
+
+        for module in &preparation.modules {
+            let name = &module.info.name;
+            code!(async_content =>
+                pub mod ${name} {
+                    pub use super::super::${name}::*;
+                    pub use super::super::${name}::async_::*;
+                }
+            );
+        }
+
         code!(content =>
             pub mod sync {
-                $!sync
+                $sync_content
             }
             pub mod async_ {
-                $!async_
+                $async_content
             }
-        )
+        );
     }
 
     vfs.add("src/queries.rs", content);

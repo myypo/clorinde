@@ -6,7 +6,8 @@ use crate::CodegenSettings;
 use super::{vfs::Vfs, DependencyAnalysis, WARNING};
 
 pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
-    let mut w = code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         #[allow(clippy::all, clippy::pedantic)]
         #[allow(unused_variables)]
         #[allow(unused_imports)]
@@ -69,24 +70,28 @@ pub(crate) fn gen_clients(
 }
 
 pub fn client(settings: &CodegenSettings) -> String {
+    let mut w = String::new();
     match (settings.gen_async, settings.gen_sync) {
-        (true, false) => code!(
+        (true, false) => code!(w =>
             pub(crate) mod async_;
             pub use async_::*;
         ),
-        (false, true) => code!(
+        (false, true) => code!(w =>
             pub(crate) mod sync;
             pub use sync::*;
         ),
-        _ => code!(
+        _ => code!(w =>
             pub mod sync;
             pub mod async_;
         ),
-    }
+    };
+
+    w
 }
 
 pub fn core_utils() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use postgres_types::{Kind, ToSql, Type};
 
         pub fn escape_domain(ty: &Type) -> &Type {
@@ -101,11 +106,14 @@ pub fn core_utils() -> String {
         ) -> impl ExactSizeIterator<Item = &'a dyn ToSql> + 'a {
             s.iter().map(|s| *s as _)
         }
-    )
+    );
+
+    w
 }
 
 pub fn core_domain() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use postgres_protocol::types::{array_to_sql, ArrayDimension};
         use postgres_types::{private::BytesMut, IsNull, Kind, ToSql, Type};
         use std::{
@@ -219,11 +227,14 @@ pub fn core_domain() -> String {
                 Ok(len as i32)
             }
         }
-    )
+    );
+
+    w
 }
 
 pub fn core_array() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use fallible_iterator::FallibleIterator;
         use postgres_protocol::types::{array_from_sql, ArrayValues};
         use postgres_types::{FromSql, Kind, Type};
@@ -291,11 +302,14 @@ pub fn core_array() -> String {
                 }
             }
         }
-    )
+    );
+
+    w
 }
 
 pub fn core_type_traits(dependency_analysis: &DependencyAnalysis) -> String {
-    let mut w = code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use std::borrow::Cow;
 
         use super::domain::escape_domain_to_sql;
@@ -450,7 +464,8 @@ pub fn core_type_traits(dependency_analysis: &DependencyAnalysis) -> String {
 }
 
 pub fn sync() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use postgres::Statement;
 
         /// This trait allows you to bind parameters to a query using a single
@@ -487,11 +502,14 @@ pub fn sync() -> String {
                 Ok(unsafe { self.cached.as_ref().unwrap_unchecked() })
             }
         }
-    )
+    );
+
+    w
 }
 
 pub fn async_() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         pub use generic_client::GenericClient;
         use tokio_postgres::{Error, Statement};
 
@@ -533,11 +551,14 @@ pub fn async_() -> String {
                 Ok(unsafe { self.cached.as_ref().unwrap_unchecked() })
             }
         }
-    )
+    );
+
+    w
 }
 
 pub fn async_generic_client() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use async_trait::async_trait;
         use tokio_postgres::{
             types::BorrowToSql, Client, Error, RowStream, Statement, ToStatement, Transaction,
@@ -713,11 +734,14 @@ pub fn async_generic_client() -> String {
                 Client::query_raw(self, statement, params).await
             }
         }
-    )
+    );
+
+    w
 }
 
 pub fn async_deadpool() -> String {
-    code!($WARNING
+    let mut w = String::new();
+    code!(w => $WARNING
         use async_trait::async_trait;
         use deadpool_postgres::{
             Client as DeadpoolClient, ClientWrapper, Transaction as DeadpoolTransaction,
@@ -850,5 +874,7 @@ pub fn async_deadpool() -> String {
                 PgTransaction::query_raw(self, statement, params).await
             }
         }
-    )
+    );
+
+    w
 }

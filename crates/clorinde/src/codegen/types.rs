@@ -15,31 +15,37 @@ pub(crate) fn gen_type_modules(
     prepared: &IndexMap<String, Vec<PreparedType>>,
     settings: &CodegenSettings,
 ) -> String {
-    let modules = prepared.iter().map(|(schema, types)| {
-        move |w: &mut String| {
-            if schema == "public" {
-                let ctx = &GenCtx::new(ModCtx::Types, settings.gen_async, settings.derive_ser);
-                let lazy = |w: &mut String| {
-                    for ty in types {
-                        gen_custom_type(w, schema, ty, ctx)
+    let mut w = String::new();
+
+    code!(w => $WARNING);
+
+    for (schema, types) in prepared {
+        if schema == "public" {
+            let ctx = GenCtx::new(ModCtx::Types, settings.gen_async, settings.derive_ser);
+            {
+                let mut module_content = String::new();
+                for ty in types {
+                    gen_custom_type(&mut module_content, schema, ty, &ctx);
+                }
+                w.push_str(&module_content);
+            }
+        } else {
+            let ctx = GenCtx::new(ModCtx::SchemaTypes, settings.gen_async, settings.derive_ser);
+            {
+                let mut module_content = String::new();
+                for ty in types {
+                    gen_custom_type(&mut module_content, schema, ty, &ctx);
+                }
+                code!(w =>
+                    pub mod $schema {
+                        $module_content
                     }
-                };
-                code!(w => $!lazy);
-            } else {
-                let ctx =
-                    &GenCtx::new(ModCtx::SchemaTypes, settings.gen_async, settings.derive_ser);
-                let lazy = |w: &mut String| {
-                    for ty in types {
-                        gen_custom_type(w, schema, ty, ctx)
-                    }
-                };
-                code!(w => pub mod $schema { $!lazy });
+                );
             }
         }
-    });
-    code!($WARNING
-        $($!modules)
-    )
+    }
+
+    w
 }
 
 /// Generates type definitions for custom user types. This includes domains, composites and enums.

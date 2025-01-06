@@ -1,4 +1,3 @@
-// This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
 pub struct InsertBookParams<T1: crate::StringSql, T2: crate::StringSql> {
@@ -43,7 +42,8 @@ impl<'a> From<FindBooksBorrowed<'a>> for FindBooks {
             author: author.map(|v| v.into()),
         }
     }
-}
+} // This file was generated with `clorinde`. Do not modify.
+
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct SelectBookQuery<'a, C: GenericClient, T, const N: usize> {

@@ -1,4 +1,3 @@
-// This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
 pub struct AuthorNameStartingWithParams<T1: crate::StringSql> {
@@ -75,7 +74,8 @@ impl<'a> From<SelectTranslationsBorrowed<'a>> for SelectTranslations {
             translations: translations.map(|v| v.into()).collect(),
         }
     }
-}
+} // This file was generated with `clorinde`. Do not modify.
+
 use crate::client::async_::GenericClient;
 use futures::{self, StreamExt, TryStreamExt};
 pub struct AuthorsQuery<'a, C: GenericClient, T, const N: usize> {
