@@ -1,33 +1,39 @@
 ![cool hat](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/assets/clorinde_hat.png)
 
 # Clorinde
-Clorinde is a tool powered by [`rust-postgres`](https://github.com/sfackler/rust-postgres) designed to generate type-checked Rust interfaces from your PostgreSQL queries. It works by preparing your queries against an actual database and then running an extensive validation suite on them. Once the queries are prepared and validated, Rust code is generated into a module, which can be imported and used in your project.
 
-The basic premise is thus to:
-1. Write your PostgreSQL queries.
-2. Use Clorinde to generate Rust code.
-3. Use the generated code in your project.
+Clorinde generates type-checked Rust interfaces from PostgreSQL queries, with an emphasis on compile-time safety and high performance. It is a fork of [Cornucopia](https://github.com/cornucopia-rs/cornucopia) that enhances the original with an improved architecture and expanded capabilities.
 
-Compared to other Rust database interfaces, Clorinde's approach has the benefits of being simple to understand while also generating code that is both ergonomic and free of heavy macros or complex generics. Since Clorinde generates plain Rust structs, you can also easily build upon the generated items.
+## Key Features
 
-Here are some defining features:
-* SQL-first. Your SQL is the only source of truth. No intricate ORM.
-* Powerful query validation. Catch errors before runtime, with powerful (and pretty) diagnostics.
-* Supports custom user types (composites, domains, and enums) and one-dimensional arrays.
-* Sync and async driver support, with optional pooling.
-* Ergonomic non-allocating row mapping.
-* Granular type nullity control.
-* Available as a library and a CLI.
-* As close to native `rust-postgres` performance as we can make it.
+Building on Cornucopia's foundation:
+* SQL-first approach with powerful query validation
+* Sync and async driver support with optional connection pooling
+* Non-allocating row mapping
+* Available as both a library and CLI tool
+* Native `rust-postgres` performance
+* Complete support for custom PostgreSQL types (composites, domains, and enums)
+* One-dimensional array handling for all supported types
+* Granular type nullity control
 
-You can learn more about using Clorinde by reading our [book](https://clorinde-rs.netlify.app/book/index.html), or you can get a quickstart by looking at our [examples](https://clorinde-rs.netlify.app/book/examples.html).
+Clorinde adds:
+* Crate-based code generation architecture 
+* Full wasm compatibility
+* Custom Rust type mapping
 
-## A quick taste of Clorinde
-The [book](https://clorinde-rs.netlify.app/book/index.html) is the place to go to get more in-depth explanations, but here is the simplest of tasters to give you an idea.
+## Installation
 
-Let's say you have the following PostgreSQL queries
+Install with:
+
+```bash
+cargo install clorinde
+```
+
+## Quick Example
+Write your PostgreSQL queries with annotations and named parameters:
+
 ```sql
--- queries/some_query_file.sql
+-- queries/authors.sql
 
 --! authors
 SELECT first_name, last_name, country FROM Authors;
@@ -36,32 +42,40 @@ SELECT first_name, last_name, country FROM Authors;
 INSERT INTO Authors(first_name, last_name, country)
 VALUES (:first_name, :last_name, :country)
 ```
-Notice the query annotations (`--! authors`, `--! insert_authors`) and the named bind parameters (`:first_name`, etc.).
 
-Then, after generating the Rust code with Clorinde's CLI, you can import it into your project like so:
-```rust
-mod clorinde;
-use clorinde::{authors, insert_author};
+Generate the crate with `clorinde`, then you can import it into your project after adding it to your `Cargo.toml`:
+```toml
+clorinde = { path = "./clorinde" }
 ```
 
-Finally here is an example usage of these queries:
 ```rust
+use clorinde::queries{authors, insert_author};
+
 insert_author.bind(&client, "Agatha", "Christie", "England");
 
 let all_authors = authors().bind(&client).all();
 
 for author in all_authors {
-  println!("[{}] {}, {}",
-    author.country,
-    author.last_name.to_uppercase(),
+  println!("[{}] {}, {}", 
+    author.country, 
+    author.last_name.to_uppercase(), 
     author.first_name
   )
 }
 ```
-You can customize pretty much every aspect of your queries easily with Clorinde (custom parameters and row structs, renaming, nullity control, etc.), so please head over to the [book](https://clorinde-rs.netlify.app/book/index.html) if you're interested to learn more.
+
+For more examples go to the [/examples](https://github.com/halcyonnouveau/clorinde/tree/main/examples) directory, or head over to the [book](https://halcyonnouveau.github.io/clorinde/) to learn more.
 
 ## MSRV
+
 This crate uses Rust 2021 edition, which requires at least version 1.62.1.
+
+## Similar Libraries
+
+- [Cornucopia](https://github.com/cornucopia-rs/cornucopia) - The original project Clorinde is forked from
+- [sqlc](https://github.com/sqlc-dev/sqlc) (Go) - Generate type-safe code from SQL
+- [Kanel](https://github.com/kristiandupont/kanel) (TypeScript) - Generate TypeScript types from Postgres
+- [jOOQ](https://github.com/jOOQ/jOOQ) (Java) - Generate typesafe SQL from your database schema
 
 ## License
 
