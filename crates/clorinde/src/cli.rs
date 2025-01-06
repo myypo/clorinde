@@ -62,7 +62,10 @@ pub fn run() -> Result<(), Error> {
         config,
     } = Args::parse();
 
-    let cfg = Config::from_file(config)?;
+    let cfg = match config.is_file() {
+        true => Config::from_file(config)?,
+        false => Config::default(),
+    };
 
     let settings = CodegenSettings {
         gen_async: r#async || !sync,
