@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub struct ImplicitCompactParams<T1: crate::StringSql> {
     pub name: Option<T1>,

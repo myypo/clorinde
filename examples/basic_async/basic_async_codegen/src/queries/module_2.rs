@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub struct AuthorNameStartingWithParams<T1: crate::StringSql> {
     pub start_str: T1,

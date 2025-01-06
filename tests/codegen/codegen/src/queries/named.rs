@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub struct NamedParams<T1: crate::StringSql> {
     pub name: T1,

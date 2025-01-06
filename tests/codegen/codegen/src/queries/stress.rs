@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub struct EverythingParams<
     T1: crate::StringSql,

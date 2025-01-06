@@ -42,6 +42,9 @@ fn parse_out<'a>(scan: &mut Scanner<'a>) -> Option<&'a str> {
     scan.eat_whitespace();
     if let Some(ident) = parse_ident(scan) {
         scan.eat_whitespace();
+        if scan.eat_if("=> ") {
+            return Some(ident);
+        }
         if scan.eat_if("=>") {
             return Some(ident);
         }
