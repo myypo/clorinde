@@ -1,4 +1,4 @@
-use clorinde::{conn::clorinde_conn, CodegenSettings};
+use clorinde::{config::Config, conn::clorinde_conn, CodegenSettings};
 use criterion::Criterion;
 
 fn bench(c: &mut Criterion) {
@@ -17,6 +17,7 @@ fn bench(c: &mut Criterion) {
                     gen_sync: true,
                     gen_async: false,
                     derive_ser: true,
+                    config: Config::default(),
                 },
             )
             .unwrap()
@@ -32,6 +33,7 @@ fn bench(c: &mut Criterion) {
                     gen_sync: true,
                     gen_async: false,
                     derive_ser: true,
+                    config: Config::default(),
                 },
             )
             .unwrap()
