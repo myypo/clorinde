@@ -6,7 +6,7 @@ use postgres_types::{Kind, Type};
 
 use crate::{
     codegen::{idx_char, DependencyAnalysis, GenCtx},
-    config::Config,
+    config::{Config, TypeMapping},
     parser::Span,
     read_queries::ModuleInfo,
     utils::SchemaKey,
@@ -330,14 +330,26 @@ impl TypeRegistrar {
 
         // check if there's a user-defined mapping first
         if let Some(mapping) = self.config.clone().get_type_mapping(ty) {
-            return Ok(self.insert(ty, move || match mapping.kind.as_ref() {
-                "simple" => ClorindeType::Simple {
+            return Ok(match mapping {
+                TypeMapping::Simple(name) => self.insert(ty, || ClorindeType::Simple {
                     pg_ty: ty.clone(),
-                    rust_name: mapping.rust_type.clone(),
-                    is_copy: mapping.is_copy,
-                },
-                _ => unimplemented!(),
-            }));
+                    rust_name: name.to_string(),
+                    is_copy: true,
+                }),
+                TypeMapping::Detailed {
+                    rust_type,
+                    is_copy,
+                    is_params: _,
+                    kind,
+                } => self.insert(ty, move || match kind.as_ref() {
+                    "simple" => ClorindeType::Simple {
+                        pg_ty: ty.clone(),
+                        rust_name: rust_type.clone(),
+                        is_copy: *is_copy,
+                    },
+                    _ => unimplemented!(),
+                }),
+            });
         }
 
         if let Some(idx) = self.types.get_index_of(&SchemaKey::from(ty)) {

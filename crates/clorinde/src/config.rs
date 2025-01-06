@@ -11,31 +11,41 @@ pub struct Config {
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Types {
-    #[serde(default, rename = "crate")]
-    pub crate_info: Option<CrateInfo>,
+    #[serde(default, rename = "crates")]
+    pub crate_info: HashMap<String, CrateDependency>,
     #[serde(default)]
     pub mapping: HashMap<String, TypeMapping>,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
-pub struct CrateInfo {
-    /// Name of the custom types crate
-    #[serde(default = "default_name")]
-    pub name: String,
-    /// Path of the custom types crate (relative to Clorinde)
-    #[serde(default = "default_path")]
-    pub path: String,
+#[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum CrateDependency {
+    Simple(String),
+    Detailed {
+        version: Option<String>,
+        path: Option<String>,
+        #[serde(default)]
+        features: Option<Vec<String>>,
+        #[serde(default)]
+        default_features: Option<bool>,
+        #[serde(default)]
+        optional: Option<bool>,
+    },
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
-pub struct TypeMapping {
-    pub rust_type: String,
-    #[serde(default = "default_true")]
-    pub is_copy: bool,
-    #[serde(default = "default_true")]
-    pub is_params: bool,
-    #[serde(default = "default_kind")]
-    pub kind: String,
+#[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum TypeMapping {
+    Simple(String),
+    Detailed {
+        rust_type: String,
+        #[serde(default = "default_true")]
+        is_copy: bool,
+        #[serde(default = "default_true")]
+        is_params: bool,
+        #[serde(default = "default_kind")]
+        kind: String,
+    },
 }
 
 fn default_true() -> bool {
@@ -44,14 +54,6 @@ fn default_true() -> bool {
 
 fn default_kind() -> String {
     "simple".to_string()
-}
-
-fn default_name() -> String {
-    "ctypes".to_string()
-}
-
-fn default_path() -> String {
-    "../ctypes".to_string()
 }
 
 impl Config {

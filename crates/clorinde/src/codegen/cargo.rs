@@ -3,7 +3,7 @@ use std::fmt::Write;
 use indoc::{formatdoc, writedoc};
 use postgres_types::{Kind, Type};
 
-use crate::CodegenSettings;
+use crate::{config::CrateDependency, CodegenSettings};
 
 /// Register use of typed requiring specific dependencies
 #[derive(Debug, Clone, Default)]
@@ -102,20 +102,79 @@ pub fn gen_cargo_file(
     "#}
     .unwrap();
 
+    // add custom type crates
     if !settings.config.types.mapping.is_empty() {
-        if let Some(crate_info) = settings.config.types.crate_info {
-            let name = crate_info.name;
-            let path = crate_info.path;
-            writedoc! { buf, r#"
+        if !settings.config.types.crate_info.is_empty() {
+            for (name, dep) in &settings.config.types.crate_info {
+                match dep {
+                    CrateDependency::Simple(version) => {
+                        writedoc! { buf, r#"
+                        {name} = "{version}"
+                    "#}
+                        .unwrap();
+                    }
+                    CrateDependency::Detailed {
+                        version,
+                        path,
+                        features,
+                        default_features,
+                        optional,
+                    } => {
+                        writedoc! { buf, r#"
+                        {name} = {{"#}
+                        .unwrap();
 
-                {name}= {{ path = "{path}" }}
-            "#}
-            .unwrap();
+                        let mut first = true;
+
+                        if let Some(version) = version {
+                            write!(buf, r#"version = "{version}""#).unwrap();
+                            first = false;
+                        }
+                        if let Some(path) = path {
+                            if !first {
+                                write!(buf, ", ").unwrap();
+                            }
+                            write!(buf, r#"path = "{path}""#).unwrap();
+                            first = false;
+                        }
+                        if let Some(features) = features {
+                            if !first {
+                                write!(buf, ", ").unwrap();
+                            }
+                            write!(buf, r#"features = ["#).unwrap();
+                            for (i, feature) in features.iter().enumerate() {
+                                if i > 0 {
+                                    write!(buf, ", ").unwrap();
+                                }
+                                write!(buf, r#""{feature}""#).unwrap();
+                            }
+                            write!(buf, "]").unwrap();
+                            first = false;
+                        }
+                        if let Some(default_features) = default_features {
+                            if !first {
+                                write!(buf, ", ").unwrap();
+                            }
+                            write!(buf, r#"default-features = {default_features}"#).unwrap();
+                            first = false;
+                        }
+                        if let Some(optional) = optional {
+                            if !first {
+                                write!(buf, ", ").unwrap();
+                            }
+                            write!(buf, r#"optional = {optional}"#).unwrap();
+                        }
+
+                        writedoc! { buf, r#"}}
+                        "#}
+                        .unwrap();
+                    }
+                }
+            }
         } else {
             writedoc! { buf, r#"
-
-                ctypes = {{ path = "../ctypes" }}
-            "#}
+            ctypes = {{ path = "../ctypes" }}
+        "#}
             .unwrap();
         }
     }
