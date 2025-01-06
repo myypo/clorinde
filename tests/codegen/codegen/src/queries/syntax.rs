@@ -1,3 +1,5 @@
+// This file was generated with `clorinde`. Do not modify.
+
 #[derive(Debug)]
 pub struct ImplicitCompactParams<T1: crate::StringSql> {
     pub name: Option<T1>,
@@ -101,8 +103,7 @@ impl<'a> From<TypeofBorrowed<'a>> for Typeof {
             r#enum,
         }
     }
-} // This file was generated with `clorinde`. Do not modify.
-
+}
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct CloneCompositeQuery<'a, C: GenericClient, T, const N: usize> {

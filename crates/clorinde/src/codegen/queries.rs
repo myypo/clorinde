@@ -343,6 +343,7 @@ fn gen_query_fn<W: Write>(w: &mut W, module: &PreparedModule, query: &PreparedQu
 fn gen_query_module(module: &PreparedModule, settings: CodegenSettings) -> String {
     let ctx = GenCtx::new(ModCtx::Queries, settings.gen_async, settings.derive_ser);
     let mut w = String::new();
+    code!(w => $WARNING);
 
     for params in module.params.values() {
         gen_params_struct(&mut w, params, &ctx);
@@ -390,7 +391,6 @@ fn gen_query_module(module: &PreparedModule, settings: CodegenSettings) -> Strin
         }
     };
 
-    code!(w => $WARNING);
     sync_specific(&mut w);
 
     w

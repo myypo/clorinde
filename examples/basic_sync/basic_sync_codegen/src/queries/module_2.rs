@@ -1,3 +1,5 @@
+// This file was generated with `clorinde`. Do not modify.
+
 #[derive(Debug)]
 pub struct AuthorNameStartingWithParams<T1: crate::StringSql> {
     pub start_str: T1,
@@ -73,8 +75,7 @@ impl<'a> From<SelectTranslationsBorrowed<'a>> for SelectTranslations {
             translations: translations.map(|v| v.into()).collect(),
         }
     }
-} // This file was generated with `clorinde`. Do not modify.
-
+}
 use postgres::{fallible_iterator::FallibleIterator, GenericClient};
 pub struct AuthorsQuery<'a, C: GenericClient, T, const N: usize> {
     client: &'a mut C,

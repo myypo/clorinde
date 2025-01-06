@@ -1,3 +1,5 @@
+// This file was generated with `clorinde`. Do not modify.
+
 #[derive(Debug)]
 pub struct InsertNightmareDomainParams<
     'a,
@@ -77,8 +79,7 @@ impl<'a> From<SelectNightmareDomainNullBorrowed<'a>> for SelectNightmareDomainNu
             composite: composite.map(|v| v.into()),
         }
     }
-} // This file was generated with `clorinde`. Do not modify.
-
+}
 pub mod sync {
     use postgres::{fallible_iterator::FallibleIterator, GenericClient};
     pub struct SelectNightmareDomainQuery<'a, C: GenericClient, T, const N: usize> {
