@@ -139,7 +139,7 @@ pub(crate) fn gen(name: &str, preparation: Preparation, settings: CodegenSetting
     vfs.add("Cargo.toml", cargo);
     vfs.add(
         "src/lib.rs",
-        client::gen_lib(&preparation.dependency_analysis),
+        client::gen_lib(&preparation.dependency_analysis, &settings),
     );
     let types = gen_type_modules(&preparation.types, &settings.clone());
     vfs.add("src/types.rs", types);

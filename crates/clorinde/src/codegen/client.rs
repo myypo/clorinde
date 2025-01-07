@@ -5,7 +5,10 @@ use crate::CodegenSettings;
 
 use super::{vfs::Vfs, DependencyAnalysis, WARNING};
 
-pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
+pub(crate) fn gen_lib(
+    dependency_analysis: &DependencyAnalysis,
+    settings: &CodegenSettings,
+) -> String {
     let mut w = String::new();
     code!(w => $WARNING
         #[allow(clippy::all, clippy::pedantic)]
@@ -30,14 +33,23 @@ pub(crate) fn gen_lib(dependency_analysis: &DependencyAnalysis) -> String {
         pub use array_iterator::ArrayIterator;
         pub use domain::{Domain, DomainArray};
         pub use type_traits::{ArraySql, BytesSql, IterSql, StringSql};
-
-        #[cfg(feature = "deadpool")]
-        pub use deadpool_postgres;
-        #[cfg(any(feature = "deadpool", feature = "wasm-async"))]
-        pub use tokio_postgres;
-        #[cfg(not(any(feature = "deadpool", feature = "wasm-async")))]
-        pub use postgres;
     );
+
+    if settings.gen_async {
+        code!(w =>
+            #[cfg(feature = "deadpool")]
+            pub use deadpool_postgres;
+            #[cfg(any(feature = "deadpool", feature = "wasm-async"))]
+            pub use tokio_postgres;
+            #[cfg(not(any(feature = "deadpool", feature = "wasm-async")))]
+            pub use postgres;
+        );
+    } else {
+        code!(w =>
+            pub use postgres;
+        );
+    }
+
     if dependency_analysis.json {
         code!(w => pub use type_traits::JsonSql; )
     }
