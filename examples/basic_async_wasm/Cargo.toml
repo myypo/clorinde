@@ -2,6 +2,7 @@
 edition = "2021"
 name = "basic-async-wasm"
 version = "0.1.0"
+publish = false
 
 [dependencies]
 # Clorinde with wasm feature

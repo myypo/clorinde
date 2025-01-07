@@ -3,6 +3,7 @@
 name = "auto_build_codegen"
 version = "0.10.1"
 edition = "2021"
+publish = false
 
 [features]
 default = ["deadpool"]

@@ -54,6 +54,7 @@ pub fn gen_cargo_file(
         name = "{name}"
         version = "{VERSION}"
         edition = "2021"
+        publish = false
     "#};
 
     if settings.gen_async {
@@ -65,7 +66,7 @@ pub fn gen_cargo_file(
         let wasm_features = wasm_features.join(", ");
 
         writedoc! { buf, r#"
-            
+
             [features]
             default = ["deadpool"]
             deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
@@ -219,7 +220,7 @@ pub fn gen_cargo_file(
         if dependency_analysis.decimal {
             writedoc! { buf, r#"
                 # DECIMAL
-                rust_decimal = {{ version = "1.36.0", features = ["db-postgres"] }} 
+                rust_decimal = {{ version = "1.36.0", features = ["db-postgres"] }}
             "#}
             .unwrap();
         }

@@ -3,6 +3,7 @@
 name = "generated"
 version = "0.10.1"
 edition = "2021"
+publish = false
 
 [features]
 default = ["deadpool"]

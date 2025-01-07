@@ -9,6 +9,7 @@ repository = "https://github.com/halcyonnouveau/clorinde"
 readme = "../../README.md"
 categories = ["database"]
 keywords = ["postgresql", "query", "generator", "sql", "tokio-postgres"]
+publish = true
 
 [dependencies]
 # Ergonomic codegen tools
