@@ -147,7 +147,7 @@ pub fn core_domain() -> String {
             where
                 Self: Sized,
             {
-                return T::accepts(escape_domain(ty));
+                T::accepts(escape_domain(ty))
             }
 
             fn to_sql_checked(
@@ -161,7 +161,7 @@ pub fn core_domain() -> String {
 
         pub struct DomainArray<'a, T: ToSql + Sync, A: ArraySql<Item = T>>(pub &'a A);
 
-        impl<'a, T: ToSql + Sync, A: ArraySql<Item = T>> Debug for DomainArray<'a, T, A> {
+        impl<T: ToSql + Sync, A: ArraySql<Item = T>> Debug for DomainArray<'_, T, A> {
             fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
                 f.debug_tuple("ArrayDomain").field(&self.0).finish()
             }
