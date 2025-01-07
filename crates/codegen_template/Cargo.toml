@@ -14,4 +14,4 @@ proc-macro = true
 # String scanner
 unscanny = "0.1.0"
 # Utility to parse rust identifiers
-unicode-xid = "0.2.4"
+unicode-xid = "0.2.6"

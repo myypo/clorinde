@@ -14,19 +14,19 @@ clorinde = { path = "../crates/clorinde" }
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 # async
-tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
-futures = "0.3.28"
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+futures = "0.3.31"
 
 # rust-postgres interaction
-postgres = "0.19.5"
-tokio-postgres = "0.7.8"
-postgres-types = "0.2.5"
+postgres = "0.19.9"
+tokio-postgres = "0.7.12"
+postgres-types = "0.2.8"
 
 # diesel
-diesel = { version = "2.0.4", features = ["postgres"] }
+diesel = { version = "2.2.6", features = ["postgres"] }
 
 # Temporary files
-tempfile = "3.5.0"
+tempfile = "3.15.0"
 
 generated = { path = "generated" }
 
