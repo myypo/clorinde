@@ -4,6 +4,7 @@ use clorinde::{CodegenSettings, Error};
 // In this example, we generate the module in our project, but
 // we could also generate it elsewhere
 
+#[allow(clippy::result_large_err)]
 fn main() -> Result<(), Error> {
     let queries_path = "queries";
     let schema_file = "schema.sql";

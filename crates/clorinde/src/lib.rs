@@ -40,6 +40,7 @@ pub struct CodegenSettings {
     pub config: Config,
 }
 
+#[allow(clippy::result_large_err)]
 /// Generates Rust queries from PostgreSQL queries located at `queries_path`,
 /// using a live database managed by you. Code generation settings are
 /// set using the `settings` parameter.
@@ -67,6 +68,7 @@ pub fn gen_live<P: AsRef<Path>>(
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 /// Generates Rust queries from PostgreSQL queries located at `queries_path`, using
 /// a container managed by clorinde. The database schema is created using `schema_files`.
 /// Code generation settings are set using the `settings` parameter.

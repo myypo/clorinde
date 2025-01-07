@@ -41,10 +41,11 @@ impl ClorindeType {
     /// Is this type need a generic lifetime
     pub fn is_ref(&self) -> bool {
         match self {
-            ClorindeType::Simple { pg_ty, .. } => match *pg_ty {
-                Type::BYTEA | Type::TEXT | Type::VARCHAR | Type::JSON | Type::JSONB => false,
-                _ => !self.is_copy(),
-            },
+            ClorindeType::Simple {
+                pg_ty: Type::BYTEA | Type::TEXT | Type::VARCHAR | Type::JSON | Type::JSONB,
+                ..
+            } => false,
+            ClorindeType::Simple { .. } => !self.is_copy(),
             ClorindeType::Domain { inner, .. } | ClorindeType::Array { inner } => inner.is_ref(),
             _ => !self.is_copy(),
         }

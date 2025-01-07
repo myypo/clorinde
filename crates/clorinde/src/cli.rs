@@ -49,6 +49,7 @@ enum Action {
     },
 }
 
+#[allow(clippy::result_large_err)]
 // Main entrypoint of the CLI. Parses the args and calls the appropriate routines.
 pub fn run() -> Result<(), Error> {
     let Args {
