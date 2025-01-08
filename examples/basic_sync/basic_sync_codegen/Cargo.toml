@@ -9,6 +9,9 @@ publish = false
 default = []
 wasm-sync = []
 
+chrono = []
+time = []
+
 [dependencies]
 ## Core dependencies
 # Postgres types

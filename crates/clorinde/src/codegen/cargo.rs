@@ -104,6 +104,13 @@ pub fn gen_cargo_file(
             time = ["dep:time"]
         "#}
         .unwrap();
+    } else {
+        writedoc! { buf, r#"
+
+            chrono = []
+            time = []
+        "#}
+        .unwrap();
     }
 
     writedoc! { buf, r#"
