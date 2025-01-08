@@ -10,6 +10,9 @@ default = ["deadpool"]
 deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
 wasm-async = ["tokio-postgres/js"]
 
+chrono = []
+time = []
+
 [dependencies]
 ## Core dependencies
 # Postgres types
