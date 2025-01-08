@@ -9,18 +9,28 @@ pub struct Authors {
     pub id: i32,
     pub name: String,
     pub country: String,
+    pub dob: crate::types::time::Date,
 }
 pub struct AuthorsBorrowed<'a> {
     pub id: i32,
     pub name: &'a str,
     pub country: &'a str,
+    pub dob: crate::types::time::Date,
 }
 impl<'a> From<AuthorsBorrowed<'a>> for Authors {
-    fn from(AuthorsBorrowed { id, name, country }: AuthorsBorrowed<'a>) -> Self {
+    fn from(
+        AuthorsBorrowed {
+            id,
+            name,
+            country,
+            dob,
+        }: AuthorsBorrowed<'a>,
+    ) -> Self {
         Self {
             id,
             name: name.into(),
             country: country.into(),
+            dob,
         }
     }
 }
@@ -369,6 +379,7 @@ impl AuthorsStmt {
                 id: row.get(0),
                 name: row.get(1),
                 country: row.get(2),
+                dob: row.get(3),
             },
             mapper: |it| <Authors>::from(it),
         }

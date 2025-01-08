@@ -230,11 +230,13 @@ name = "basic_async_codegen"
 version = "0.10.2"
 dependencies = [
  "async-trait",
+ "chrono",
  "deadpool-postgres",
  "fallible-iterator",
  "futures",
  "postgres-protocol",
  "postgres-types",
+ "time",
  "tokio-postgres",
 ]
 
@@ -528,6 +530,7 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
+ "time",
  "tokio-postgres",
  "uuid",
 ]
@@ -679,6 +682,7 @@ dependencies = [
  "futures",
  "postgres-protocol",
  "postgres-types",
+ "time",
  "tokio-postgres",
 ]
 
@@ -1678,6 +1682,7 @@ dependencies = [
  "postgres-protocol",
  "serde",
  "serde_json",
+ "time",
  "uuid",
 ]
 
@@ -2304,6 +2309,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35e7868883861bd0e56d9ac6efcaaca0d6d5d82a2a7ec8209ff492c07cf37b21"
 dependencies = [
  "deranged",
+ "js-sys",
  "num-conv",
  "powerfmt",
  "serde",

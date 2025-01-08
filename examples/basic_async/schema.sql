@@ -2,11 +2,12 @@ CREATE TABLE Author (
     Id serial NOT NULL,
     Name varchar(70) NOT NULL,
     Country varchar(100) NOT NULL,
+    Dob date NOT NULL,
     PRIMARY KEY (Id)
 );
 
-INSERT INTO Author (Name, Country)
-    VALUES ('Agatha Christie', 'United Kingdom'), ('John Ronald Reuel Tolkien', 'United Kingdom');
+INSERT INTO Author (Name, Country, Dob)
+    VALUES ('Agatha Christie', 'United Kingdom', '1999-01-02'), ('John Ronald Reuel Tolkien', 'United Kingdom', '2003-02-1');
 
 CREATE TABLE Book (
     Id serial NOT NULL,

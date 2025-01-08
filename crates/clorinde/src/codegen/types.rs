@@ -17,7 +17,22 @@ pub(crate) fn gen_type_modules(
 ) -> String {
     let mut w = String::new();
 
-    code!(w => $WARNING);
+    code!(w => $WARNING
+        #[cfg(feature = "chrono")]
+        pub mod time {
+            pub type Timestamp = chrono::NaiveDateTime;
+            pub type TimestampTz = chrono::DateTime<chrono::FixedOffset>;
+            pub type Date = chrono::NaiveDate;
+            pub type Time = chrono::NaiveTime;
+        }
+        #[cfg(feature = "time")]
+        pub mod time {
+            pub type Timestamp = time::PrimitiveDateTime;
+            pub type TimestampTz = time::OffsetDateTime;
+            pub type Date = time::Date;
+            pub type Time = time::Time;
+        }
+    );
 
     for (schema, types) in prepared {
         if schema == "public" {

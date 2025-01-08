@@ -58,17 +58,24 @@ pub fn gen_cargo_file(
     "#};
 
     if settings.gen_async {
+        let mut default_features = vec!["\"deadpool\""];
+        if dependency_analysis.has_dependency() && dependency_analysis.chrono {
+            default_features.push("\"chrono\"");
+        }
+
         let mut wasm_features = vec!["\"tokio-postgres/js\""];
         if dependency_analysis.has_dependency() && dependency_analysis.chrono {
             wasm_features.push("\"chrono/wasmbind\"");
+            wasm_features.push("\"time/wasm-bindgen\"");
         }
 
+        let default_features = default_features.join(", ");
         let wasm_features = wasm_features.join(", ");
 
         writedoc! { buf, r#"
 
             [features]
-            default = ["deadpool"]
+            default = [{default_features}]
             deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
             wasm-async = [{wasm_features}]
         "#}
@@ -86,6 +93,15 @@ pub fn gen_cargo_file(
             [features]
             default = []
             wasm-sync = [{wasm_features}]
+        "#}
+        .unwrap();
+    }
+
+    if dependency_analysis.chrono {
+        writedoc! { buf, r#"
+
+            chrono = ["dep:chrono"]
+            time = ["dep:time"]
         "#}
         .unwrap();
     }
@@ -196,10 +212,12 @@ pub fn gen_cargo_file(
         if dependency_analysis.chrono {
             writedoc! { buf, r#"
                 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
-                chrono = "0.4.39"
+                chrono = {{ version = "0.4.39", optional = true }}
+                time = {{ version = "0.3.37", optional = true }}
             "#}
             .unwrap();
             write!(client_features, r#""with-chrono-0_4","#).unwrap();
+            write!(client_features, r#""with-time-0_3","#).unwrap();
         }
         if dependency_analysis.uuid {
             writedoc! { buf, r#"
