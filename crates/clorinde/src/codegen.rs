@@ -1,8 +1,8 @@
 use core::str;
 
 use crate::{
+    config::Config,
     prepare_queries::{Preparation, PreparedField},
-    CodegenSettings,
 };
 
 mod cargo;
@@ -23,7 +23,7 @@ pub enum ModCtx {
     Types,         // crate::types
     SchemaTypes,   // crate::types::schema
     Queries,       // crate::queries
-    CLientQueries, // crate::queries::sync
+    ClientQueries, // crate::queries::sync
 }
 
 #[derive(Clone, Copy)]
@@ -50,7 +50,7 @@ impl GenCtx {
             match self.hierarchy {
                 ModCtx::Types => struct_name.to_string(),
                 ModCtx::SchemaTypes => format!("super::{struct_name}"),
-                ModCtx::Queries | ModCtx::CLientQueries => {
+                ModCtx::Queries | ModCtx::ClientQueries => {
                     format!("crate::types::{struct_name}")
                 }
             }
@@ -58,7 +58,7 @@ impl GenCtx {
             match self.hierarchy {
                 ModCtx::Types => format!("{schema}::{struct_name}"),
                 ModCtx::SchemaTypes => format!("super::{schema}::{struct_name}"),
-                ModCtx::Queries | ModCtx::CLientQueries => {
+                ModCtx::Queries | ModCtx::ClientQueries => {
                     format!("crate::types::{schema}::{struct_name}")
                 }
             }
@@ -133,21 +133,17 @@ pub fn idx_char(idx: usize) -> String {
     format!("T{idx}")
 }
 
-pub(crate) fn gen(name: &str, preparation: Preparation, settings: CodegenSettings) -> Vfs {
+pub(crate) fn gen(preparation: Preparation, config: &Config) -> Vfs {
     let mut vfs = Vfs::empty();
-    let cargo = cargo::gen_cargo_file(name, &preparation.dependency_analysis, settings.clone());
+    let cargo = cargo::gen_cargo_file(&preparation.dependency_analysis, config);
     vfs.add("Cargo.toml", cargo);
     vfs.add(
         "src/lib.rs",
-        client::gen_lib(&preparation.dependency_analysis, &settings),
+        client::gen_lib(&preparation.dependency_analysis, config),
     );
-    let types = gen_type_modules(&preparation.types, &settings.clone());
+    let types = gen_type_modules(&preparation.types, config);
     vfs.add("src/types.rs", types);
-    queries::gen_queries(&mut vfs, &preparation, settings.clone());
-    client::gen_clients(
-        &mut vfs,
-        &preparation.dependency_analysis,
-        &settings.clone(),
-    );
+    queries::gen_queries(&mut vfs, &preparation, config);
+    client::gen_clients(&mut vfs, &preparation.dependency_analysis, config);
     vfs
 }

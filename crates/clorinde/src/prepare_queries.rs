@@ -7,11 +7,12 @@ use postgres_types::{Kind, Type};
 
 use crate::{
     codegen::{DependencyAnalysis, GenCtx, ModCtx},
+    config::Config,
     parser::{Module, NullableIdent, Query, Span, TypeAnnotation},
     read_queries::ModuleInfo,
     type_registrar::{ClorindeType, TypeRegistrar},
     utils::KEYWORD,
-    validation, CodegenSettings,
+    validation,
 };
 
 use self::error::Error;
@@ -79,8 +80,8 @@ impl PreparedField {
         Self {
             ident: Ident::new(db_ident),
             ty,
-            is_nullable: nullity.map_or(false, |it| it.nullable),
-            is_inner_nullable: nullity.map_or(false, |it| it.inner_nullable),
+            is_nullable: nullity.is_some_and(|it| it.nullable),
+            is_inner_nullable: nullity.is_some_and(|it| it.inner_nullable),
         }
     }
 }
@@ -119,7 +120,7 @@ impl PreparedItem {
                 unreachable!()
             }
             ModCtx::Queries => self.name.to_string(),
-            ModCtx::CLientQueries => format!("super::{}", self.name),
+            ModCtx::ClientQueries => format!("super::{}", self.name),
         }
     }
 }
@@ -239,9 +240,9 @@ impl PreparedModule {
 pub(crate) fn prepare(
     client: &mut Client,
     modules: Vec<Module>,
-    settings: CodegenSettings,
+    config: &Config,
 ) -> Result<Preparation, Error> {
-    let mut registrar = TypeRegistrar::new(settings.config);
+    let mut registrar = TypeRegistrar::new(config.clone());
     let mut prepared_types: IndexMap<String, Vec<PreparedType>> = IndexMap::new();
     let mut prepared_modules = Vec::new();
 
