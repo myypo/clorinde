@@ -42,7 +42,8 @@ impl ClorindeType {
     pub fn is_ref(&self) -> bool {
         match self {
             ClorindeType::Simple {
-                pg_ty: Type::BYTEA | Type::TEXT | Type::VARCHAR | Type::BPCHAR | Type::JSON | Type::JSONB,
+                pg_ty:
+                    Type::BYTEA | Type::TEXT | Type::VARCHAR | Type::BPCHAR | Type::JSON | Type::JSONB,
                 ..
             } => false,
             ClorindeType::Simple { .. } => !self.is_copy(),
