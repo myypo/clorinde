@@ -2,6 +2,19 @@
 
 # Clorinde
 
+<a href="https://crates.io/crates/clorinde">
+  <img src="https://img.shields.io/crates/v/clorinde.svg?style=flat-square"
+  alt="Crates.io version" />
+</a>
+
+<a href="https://halcyonnouveau.github.io/clorinde/">
+  <img src="https://img.shields.io/badge/book-latest-blue?logo=mdbook&style=flat-square" alt="book">
+</a>
+
+<a href="https://github.com/halcyonnouveau/clorinde#License">
+  <img src="https://img.shields.io/badge/License-APACHE--2.0%2FMIT-blue?style=flat-square" alt="License">
+</a>
+
 Clorinde generates type-checked Rust interfaces from PostgreSQL queries, with an emphasis on compile-time safety and high performance. It is a fork of [Cornucopia](https://github.com/cornucopia-rs/cornucopia) that enhances the original with an improved architecture and expanded capabilities.
 
 ## Key Features
