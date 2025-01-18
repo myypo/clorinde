@@ -13,18 +13,16 @@
 | `varchar`                                         | `String`                  |
 | `bpchar`                                          | `String`                  |
 | `bytea`                                           | `Vec<u8>`                 |
-| `timestamp without time zone`, `timestamp` *(\*)* | `chrono::NaiveDateTime`   |
-| `timestamp with time zone`, `timestamptz` *(\*)*  | `chrono::DateTime<chrono::FixedOffset>`    |
-| `date`*(\*)*                                      | `chrono::NaiveDate`       |
-| `time`*(\*)*                                      | `chrono::NaiveTime`       |
-| `json`*(\*)*                                      | `serde_json::Value`       |
-| `jsonb`*(\*)*                                     | `serde_json::Value`       |
-| `uuid`*(\*)*                                      | `uuid::Uuid`              |
-| `inet`*(\*)*                                      | `std::net::IpAddr`        |
-| `macaddr`*(\*)*                                   | `eui48::MacAddress`       |
-| `numeric` *(\*)*                                  | `rust_decimal::Decimal`   |
-
-*(\*) [Optional extra types](./dependencies#optional-extra-types).*
+| `timestamp without time zone`, `timestamp`  | `chrono::NaiveDateTime`   |
+| `timestamp with time zone`, `timestamptz`   | `chrono::DateTime<chrono::FixedOffset>`    |
+| `date`                                      | `chrono::NaiveDate`       |
+| `time`                                      | `chrono::NaiveTime`       |
+| `json`                                      | `serde_json::Value`       |
+| `jsonb`                                     | `serde_json::Value`       |
+| `uuid`                                      | `uuid::Uuid`              |
+| `inet`                                      | `std::net::IpAddr`        |
+| `macaddr`                                   | `eui48::MacAddress`       |
+| `numeric`                                   | `rust_decimal::Decimal`   |
 
 ## Custom types
 Custom types like `enum`s, `composite`s and `domain`s will be generated automatically by inspecting your database. The only requirement for your custom types is that they should be based on other supported types (base or custom).

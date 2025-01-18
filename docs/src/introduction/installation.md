@@ -2,10 +2,11 @@
 ## Clorinde
 You can use Clorinde as a [CLI](/usage/cli.html) or a library [API](/usage/api.html), depending on your needs. Make sure to check out these sections later for more info.
 
-#### CLI
+#### CLI (Recommended)
 To install the latest released version of the CLI, use `cargo install`:
 ```bash
 cargo install clorinde
+
 ```
 #### API
 Import `clorinde` in your project's `Cargo.toml`:
