@@ -313,13 +313,33 @@ impl<'a> postgres_types::ToSql for DomainCompositeParams<'a> {
                 if fields.len() != 4 {
                     return false;
                 }
-                fields.iter().all(|f| match f.name()
-                {
-                    "txt" => <crate::Domain::<&'a str> as
-                    postgres_types::ToSql>::accepts(f.type_()),"json" => <crate::Domain::<&'a serde_json::value::Value> as
-                    postgres_types::ToSql>::accepts(f.type_()),"nb" => <crate::Domain::<i32> as
-                    postgres_types::ToSql>::accepts(f.type_()),"arr" => <crate::Domain::<crate::DomainArray::<&'a serde_json::value::Value, &[&'a serde_json::value::Value]>> as
-                    postgres_types::ToSql>::accepts(f.type_()),_ => false,
+                fields.iter().all(|f| {
+                    match f.name() {
+                        "txt" => {
+                            <crate::Domain<
+                                &'a str,
+                            > as postgres_types::ToSql>::accepts(f.type_())
+                        }
+                        "json" => {
+                            <crate::Domain<
+                                &'a serde_json::value::Value,
+                            > as postgres_types::ToSql>::accepts(f.type_())
+                        }
+                        "nb" => {
+                            <crate::Domain<
+                                i32,
+                            > as postgres_types::ToSql>::accepts(f.type_())
+                        }
+                        "arr" => {
+                            <crate::Domain<
+                                crate::DomainArray<
+                                    &'a serde_json::value::Value,
+                                    &[&'a serde_json::value::Value],
+                                >,
+                            > as postgres_types::ToSql>::accepts(f.type_())
+                        }
+                        _ => false,
+                    }
                 })
             }
             _ => false,
@@ -1337,13 +1357,26 @@ pub mod schema {
                     if fields.len() != 3 {
                         return false;
                     }
-                    fields.iter().all(|f| match f.name()
-                {
-                    "custom" => <&'a [super::CustomCompositeBorrowed<'a>] as
-                    postgres_types::ToSql>::accepts(f.type_()),"spongebob" => <&'a [super::SpongebobCharacter] as
-                    postgres_types::ToSql>::accepts(f.type_()),"domain" => <crate::Domain::<&'a str> as
-                    postgres_types::ToSql>::accepts(f.type_()),_ => false,
-                })
+                    fields.iter().all(|f| {
+                        match f.name() {
+                            "custom" => {
+                                <&'a [super::CustomCompositeBorrowed<
+                                    'a,
+                                >] as postgres_types::ToSql>::accepts(f.type_())
+                            }
+                            "spongebob" => {
+                                <&'a [super::SpongebobCharacter] as postgres_types::ToSql>::accepts(
+                                    f.type_(),
+                                )
+                            }
+                            "domain" => {
+                                <crate::Domain<
+                                    &'a str,
+                                > as postgres_types::ToSql>::accepts(f.type_())
+                            }
+                            _ => false,
+                        }
+                    })
                 }
                 _ => false,
             }

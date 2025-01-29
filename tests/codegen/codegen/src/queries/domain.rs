@@ -81,7 +81,7 @@ impl<'a> From<SelectNightmareDomainNullBorrowed<'a>> for SelectNightmareDomainNu
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct SelectNightmareDomainQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -205,12 +205,14 @@ pub mod sync {
                     nb: row.get(2),
                     arr: row.get(3),
                 },
-                mapper: |it| <super::SelectNightmareDomain>::from(it),
+                mapper: |it| super::SelectNightmareDomain::from(it),
             }
         }
     }
     pub fn insert_nightmare_domain() -> InsertNightmareDomainStmt {
-        InsertNightmareDomainStmt(crate::client::sync::Stmt::new("INSERT INTO nightmare_domain (txt, json, nb, arr, composite) VALUES ($1, $2, $3, $4, $5)"))
+        InsertNightmareDomainStmt(crate::client::sync::Stmt::new(
+            "INSERT INTO nightmare_domain (txt, json, nb, arr, composite) VALUES ($1, $2, $3, $4, $5)",
+        ))
     }
     pub struct InsertNightmareDomainStmt(crate::client::sync::Stmt);
     impl InsertNightmareDomainStmt {
@@ -233,38 +235,37 @@ pub mod sync {
             composite: &'a Option<crate::types::DomainCompositeParams<'a>>,
         ) -> Result<u64, postgres::Error> {
             let stmt = self.0.prepare(client)?;
-            client.execute(
-                stmt,
-                &[
-                    &crate::Domain(txt),
-                    &crate::Domain(json),
-                    &crate::Domain(nb),
-                    &crate::Domain(&crate::DomainArray(arr)),
-                    composite,
-                ],
-            )
+            client.execute(stmt, &[
+                &crate::Domain(txt),
+                &crate::Domain(json),
+                &crate::Domain(nb),
+                &crate::Domain(&crate::DomainArray(arr)),
+                composite,
+            ])
         }
     }
     impl<
-            'a,
-            C: GenericClient,
-            T1: crate::StringSql,
-            T2: crate::JsonSql,
-            T3: crate::JsonSql,
-            T4: crate::ArraySql<Item = T3>,
-        >
+        'c,
+        'a,
+        's,
+        C: GenericClient,
+        T1: crate::StringSql,
+        T2: crate::JsonSql,
+        T3: crate::JsonSql,
+        T4: crate::ArraySql<Item = T3>,
+    >
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::InsertNightmareDomainParams<'a, T1, T2, T3, T4>,
             Result<u64, postgres::Error>,
             C,
         > for InsertNightmareDomainStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::InsertNightmareDomainParams<'a, T1, T2, T3, T4>,
         ) -> Result<u64, postgres::Error> {
             self.bind(
@@ -300,7 +301,7 @@ pub mod sync {
                     arr: row.get(3),
                     composite: row.get(4),
                 },
-                mapper: |it| <super::SelectNightmareDomainNull>::from(it),
+                mapper: |it| super::SelectNightmareDomainNull::from(it),
             }
         }
     }
@@ -439,12 +440,14 @@ pub mod async_ {
                     nb: row.get(2),
                     arr: row.get(3),
                 },
-                mapper: |it| <super::SelectNightmareDomain>::from(it),
+                mapper: |it| super::SelectNightmareDomain::from(it),
             }
         }
     }
     pub fn insert_nightmare_domain() -> InsertNightmareDomainStmt {
-        InsertNightmareDomainStmt(crate::client::async_::Stmt::new("INSERT INTO nightmare_domain (txt, json, nb, arr, composite) VALUES ($1, $2, $3, $4, $5)"))
+        InsertNightmareDomainStmt(crate::client::async_::Stmt::new(
+            "INSERT INTO nightmare_domain (txt, json, nb, arr, composite) VALUES ($1, $2, $3, $4, $5)",
+        ))
     }
     pub struct InsertNightmareDomainStmt(crate::client::async_::Stmt);
     impl InsertNightmareDomainStmt {
@@ -468,27 +471,24 @@ pub mod async_ {
         ) -> Result<u64, tokio_postgres::Error> {
             let stmt = self.0.prepare(client).await?;
             client
-                .execute(
-                    stmt,
-                    &[
-                        &crate::Domain(txt),
-                        &crate::Domain(json),
-                        &crate::Domain(nb),
-                        &crate::Domain(&crate::DomainArray(arr)),
-                        composite,
-                    ],
-                )
+                .execute(stmt, &[
+                    &crate::Domain(txt),
+                    &crate::Domain(json),
+                    &crate::Domain(nb),
+                    &crate::Domain(&crate::DomainArray(arr)),
+                    composite,
+                ])
                 .await
         }
     }
     impl<
-            'a,
-            C: GenericClient + Send + Sync,
-            T1: crate::StringSql,
-            T2: crate::JsonSql,
-            T3: crate::JsonSql,
-            T4: crate::ArraySql<Item = T3>,
-        >
+        'a,
+        C: GenericClient + Send + Sync,
+        T1: crate::StringSql,
+        T2: crate::JsonSql,
+        T3: crate::JsonSql,
+        T4: crate::ArraySql<Item = T3>,
+    >
         crate::client::async_::Params<
             'a,
             'a,
@@ -540,7 +540,7 @@ pub mod async_ {
                     arr: row.get(3),
                     composite: row.get(4),
                 },
-                mapper: |it| <super::SelectNightmareDomainNull>::from(it),
+                mapper: |it| super::SelectNightmareDomainNull::from(it),
             }
         }
     }

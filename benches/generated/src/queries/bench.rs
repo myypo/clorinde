@@ -124,7 +124,7 @@ impl<'a> From<SelectComplexBorrowed<'a>> for SelectComplex {
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct UserQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -347,7 +347,7 @@ pub mod sync {
                     name: row.get(1),
                     hair_color: row.get(2),
                 },
-                mapper: |it| <super::User>::from(it),
+                mapper: |it| super::User::from(it),
             }
         }
     }
@@ -368,19 +368,19 @@ pub mod sync {
             client.execute(stmt, &[name, hair_color])
         }
     }
-    impl<'a, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
+    impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::InsertUserParams<T1, T2>,
             Result<u64, postgres::Error>,
             C,
         > for InsertUserStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::InsertUserParams<T1, T2>,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.name, &params.hair_color)
@@ -405,7 +405,7 @@ pub mod sync {
                     title: row.get(2),
                     body: row.get(3),
                 },
-                mapper: |it| <super::Post>::from(it),
+                mapper: |it| super::Post::from(it),
             }
         }
     }
@@ -431,7 +431,7 @@ pub mod sync {
                     title: row.get(2),
                     body: row.get(3),
                 },
-                mapper: |it| <super::Post>::from(it),
+                mapper: |it| super::Post::from(it),
             }
         }
     }
@@ -453,7 +453,7 @@ pub mod sync {
                     post_id: row.get(1),
                     text: row.get(2),
                 },
-                mapper: |it| <super::Comment>::from(it),
+                mapper: |it| super::Comment::from(it),
             }
         }
     }
@@ -478,12 +478,14 @@ pub mod sync {
                     post_id: row.get(1),
                     text: row.get(2),
                 },
-                mapper: |it| <super::Comment>::from(it),
+                mapper: |it| super::Comment::from(it),
             }
         }
     }
     pub fn select_complex() -> SelectComplexStmt {
-        SelectComplexStmt(crate::client::sync::Stmt::new("SELECT u.id as myuser_id, u.name, u.hair_color, p.id as post_id, p.user_id, p.title, p.body FROM users as u LEFT JOIN posts as p on u.id = p.user_id"))
+        SelectComplexStmt(crate::client::sync::Stmt::new(
+            "SELECT u.id as myuser_id, u.name, u.hair_color, p.id as post_id, p.user_id, p.title, p.body FROM users as u LEFT JOIN posts as p on u.id = p.user_id",
+        ))
     }
     pub struct SelectComplexStmt(crate::client::sync::Stmt);
     impl SelectComplexStmt {
@@ -504,7 +506,7 @@ pub mod sync {
                     title: row.get(5),
                     body: row.get(6),
                 },
-                mapper: |it| <super::SelectComplex>::from(it),
+                mapper: |it| super::SelectComplex::from(it),
             }
         }
     }
@@ -750,7 +752,7 @@ pub mod async_ {
                     name: row.get(1),
                     hair_color: row.get(2),
                 },
-                mapper: |it| <super::User>::from(it),
+                mapper: |it| super::User::from(it),
             }
         }
     }
@@ -819,7 +821,7 @@ pub mod async_ {
                     title: row.get(2),
                     body: row.get(3),
                 },
-                mapper: |it| <super::Post>::from(it),
+                mapper: |it| super::Post::from(it),
             }
         }
     }
@@ -845,7 +847,7 @@ pub mod async_ {
                     title: row.get(2),
                     body: row.get(3),
                 },
-                mapper: |it| <super::Post>::from(it),
+                mapper: |it| super::Post::from(it),
             }
         }
     }
@@ -867,7 +869,7 @@ pub mod async_ {
                     post_id: row.get(1),
                     text: row.get(2),
                 },
-                mapper: |it| <super::Comment>::from(it),
+                mapper: |it| super::Comment::from(it),
             }
         }
     }
@@ -892,12 +894,14 @@ pub mod async_ {
                     post_id: row.get(1),
                     text: row.get(2),
                 },
-                mapper: |it| <super::Comment>::from(it),
+                mapper: |it| super::Comment::from(it),
             }
         }
     }
     pub fn select_complex() -> SelectComplexStmt {
-        SelectComplexStmt(crate::client::async_::Stmt::new("SELECT u.id as myuser_id, u.name, u.hair_color, p.id as post_id, p.user_id, p.title, p.body FROM users as u LEFT JOIN posts as p on u.id = p.user_id"))
+        SelectComplexStmt(crate::client::async_::Stmt::new(
+            "SELECT u.id as myuser_id, u.name, u.hair_color, p.id as post_id, p.user_id, p.title, p.body FROM users as u LEFT JOIN posts as p on u.id = p.user_id",
+        ))
     }
     pub struct SelectComplexStmt(crate::client::async_::Stmt);
     impl SelectComplexStmt {
@@ -918,7 +922,7 @@ pub mod async_ {
                     title: row.get(5),
                     body: row.get(6),
                 },
-                mapper: |it| <super::SelectComplex>::from(it),
+                mapper: |it| super::SelectComplex::from(it),
             }
         }
     }

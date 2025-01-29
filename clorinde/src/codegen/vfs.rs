@@ -1,6 +1,7 @@
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
+    process::Command,
 };
 
 use crate::error::PersistError;
@@ -18,8 +19,39 @@ impl Vfs {
         }
     }
 
+    pub(crate) fn rustfmt(path: impl AsRef<Path>) -> bool {
+        let path = path.as_ref();
+
+        // Check if rustfmt is available
+        if Command::new("rustfmt").arg("--version").output().is_err() {
+            // rustfmt not installed - return true since this isn't a critical error
+            return true;
+        }
+
+        Command::new("rustfmt")
+            .args([
+                "--edition",
+                "2024",
+                path.join("src/lib.rs").to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success()
+    }
+
     /// Add a new file
-    pub fn add(&mut self, path: impl Into<PathBuf>, content: impl Into<String>) {
+    pub fn add(&mut self, path: impl Into<PathBuf>, content: proc_macro2::TokenStream) {
+        let warning = "// This file was generated with `clorinde`. Do not modify.\n\n";
+
+        let syntax_tree = syn::parse2(content).unwrap();
+        let formatted = prettyplease::unparse(&syntax_tree);
+
+        let file_content = format!("{}{}", warning, formatted);
+        assert!(self.fs.insert(path.into(), file_content).is_none())
+    }
+
+    /// Add a new file from a string
+    pub fn add_string(&mut self, path: impl Into<PathBuf>, content: impl Into<String>) {
         assert!(self.fs.insert(path.into(), content.into()).is_none())
     }
 
@@ -42,6 +74,9 @@ impl Vfs {
         if destination.exists() {
             std::fs::remove_dir_all(destination).map_err(PersistError::wrap(destination))?;
         }
+
+        // Format with rustfmt
+        Vfs::rustfmt(tmp.path());
 
         // Create destination directory
         std::fs::create_dir_all(destination).map_err(PersistError::wrap(destination))?;

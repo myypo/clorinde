@@ -76,7 +76,7 @@ impl<'a> From<SelectTranslationsBorrowed<'a>> for SelectTranslations {
         }
     }
 }
-use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+use postgres::{GenericClient, fallible_iterator::FallibleIterator};
 pub struct AuthorsQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -322,12 +322,7 @@ where
     }
 }
 pub fn authors() -> AuthorsStmt {
-    AuthorsStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    *
-FROM
-    Author",
-    ))
+    AuthorsStmt(crate::client::sync::Stmt::new("SELECT * FROM Author"))
 }
 pub struct AuthorsStmt(crate::client::sync::Stmt);
 impl AuthorsStmt {
@@ -344,17 +339,12 @@ impl AuthorsStmt {
                 name: row.get(1),
                 country: row.get(2),
             },
-            mapper: |it| <Authors>::from(it),
+            mapper: |it| Authors::from(it),
         }
     }
 }
 pub fn books() -> BooksStmt {
-    BooksStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    Title
-FROM
-    Book",
-    ))
+    BooksStmt(crate::client::sync::Stmt::new("SELECT Title FROM Book"))
 }
 pub struct BooksStmt(crate::client::sync::Stmt);
 impl BooksStmt {
@@ -373,12 +363,7 @@ impl BooksStmt {
 }
 pub fn author_name_by_id() -> AuthorNameByIdStmt {
     AuthorNameByIdStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    Author.Name
-FROM
-    Author
-WHERE
-    Author.Id = $1",
+        "SELECT Author.Name FROM Author WHERE Author.Id = $1",
     ))
 }
 pub struct AuthorNameByIdStmt(crate::client::sync::Stmt);
@@ -399,17 +384,7 @@ impl AuthorNameByIdStmt {
 }
 pub fn author_name_starting_with() -> AuthorNameStartingWithStmt {
     AuthorNameStartingWithStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    BookAuthor.AuthorId,
-    Author.Name,
-    BookAuthor.BookId,
-    Book.Title
-FROM
-    BookAuthor
-    INNER JOIN Author ON Author.id = BookAuthor.AuthorId
-    INNER JOIN Book ON Book.Id = BookAuthor.BookId
-WHERE
-    Author.Name LIKE CONCAT($1::text, '%')",
+        "SELECT BookAuthor.AuthorId, Author.Name, BookAuthor.BookId, Book.Title FROM BookAuthor INNER JOIN Author ON Author.id = BookAuthor.AuthorId INNER JOIN Book ON Book.Id = BookAuthor.BookId WHERE Author.Name LIKE CONCAT($1::text, '%')",
     ))
 }
 pub struct AuthorNameStartingWithStmt(crate::client::sync::Stmt);
@@ -429,7 +404,7 @@ impl AuthorNameStartingWithStmt {
                 bookid: row.get(2),
                 title: row.get(3),
             },
-            mapper: |it| <AuthorNameStartingWith>::from(it),
+            mapper: |it| AuthorNameStartingWith::from(it),
         }
     }
 }
@@ -453,12 +428,7 @@ impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql>
 }
 pub fn select_voice_actor_with_character() -> SelectVoiceActorWithCharacterStmt {
     SelectVoiceActorWithCharacterStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    voice_actor
-FROM
-    SpongeBobVoiceActor
-WHERE
-    character = $1",
+        "SELECT voice_actor FROM SpongeBobVoiceActor WHERE character = $1",
     ))
 }
 pub struct SelectVoiceActorWithCharacterStmt(crate::client::sync::Stmt);
@@ -479,11 +449,7 @@ impl SelectVoiceActorWithCharacterStmt {
 }
 pub fn select_translations() -> SelectTranslationsStmt {
     SelectTranslationsStmt(crate::client::sync::Stmt::new(
-        "SELECT
-    Title,
-    Translations
-FROM
-    Book",
+        "SELECT Title, Translations FROM Book",
     ))
 }
 pub struct SelectTranslationsStmt(crate::client::sync::Stmt);
@@ -500,7 +466,7 @@ impl SelectTranslationsStmt {
                 title: row.get(0),
                 translations: row.get(1),
             },
-            mapper: |it| <SelectTranslations>::from(it),
+            mapper: |it| SelectTranslations::from(it),
         }
     }
 }

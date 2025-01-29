@@ -105,7 +105,7 @@ impl<'a> From<TypeofBorrowed<'a>> for Typeof {
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct CloneCompositeQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -374,7 +374,7 @@ pub mod sync {
         }
     }
     pub fn select_spaced() -> SelectSpacedStmt {
-        SelectSpacedStmt(crate::client::sync::Stmt::new("      SELECT * FROM clone "))
+        SelectSpacedStmt(crate::client::sync::Stmt::new("SELECT * FROM clone"))
     }
     pub struct SelectSpacedStmt(crate::client::sync::Stmt);
     impl SelectSpacedStmt {
@@ -489,7 +489,7 @@ pub mod sync {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::Row { id: row.get(0) },
-                mapper: |it| <super::Row>::from(it),
+                mapper: |it| super::Row::from(it),
             }
         }
     }
@@ -529,7 +529,7 @@ pub mod sync {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::RowSpace { id: row.get(0) },
-                mapper: |it| <super::RowSpace>::from(it),
+                mapper: |it| super::RowSpace::from(it),
             }
         }
     }
@@ -552,7 +552,9 @@ pub mod sync {
         }
     }
     pub fn tricky_sql() -> TrickySqlStmt {
-        TrickySqlStmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a bind_param\', $1, $2)"))
+        TrickySqlStmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a bind_param\\', $1, $2)",
+        ))
     }
     pub struct TrickySqlStmt(crate::client::sync::Stmt);
     impl TrickySqlStmt {
@@ -566,26 +568,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySqlParams,
             Result<u64, postgres::Error>,
             C,
         > for TrickySqlStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySqlParams,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql1() -> TrickySql1Stmt {
-        TrickySql1Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a :bind_param', $1, $2)"))
+        TrickySql1Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a :bind_param', $1, $2)",
+        ))
     }
     pub struct TrickySql1Stmt(crate::client::sync::Stmt);
     impl TrickySql1Stmt {
@@ -599,26 +603,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql1Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql1Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql1Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql2() -> TrickySql2Stmt {
-        TrickySql2Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a '':bind_param''', $1, $2)"))
+        TrickySql2Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a '':bind_param''', $1, $2)",
+        ))
     }
     pub struct TrickySql2Stmt(crate::client::sync::Stmt);
     impl TrickySql2Stmt {
@@ -632,26 +638,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql2Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql2Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql2Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql3() -> TrickySql3Stmt {
-        TrickySql3Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum)  VALUES ($$this is not a :bind_param$$, $1, $2)"))
+        TrickySql3Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum)  VALUES ($$this is not a :bind_param$$, $1, $2)",
+        ))
     }
     pub struct TrickySql3Stmt(crate::client::sync::Stmt);
     impl TrickySql3Stmt {
@@ -665,26 +673,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql3Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql3Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql3Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql4() -> TrickySql4Stmt {
-        TrickySql4Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ($tag$this is not a :bind_param$tag$, $1, $2)"))
+        TrickySql4Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ($tag$this is not a :bind_param$tag$, $1, $2)",
+        ))
     }
     pub struct TrickySql4Stmt(crate::client::sync::Stmt);
     impl TrickySql4Stmt {
@@ -698,26 +708,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql4Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql4Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql4Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql6() -> TrickySql6Stmt {
-        TrickySql6Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is not a '':bind_param''', $1, $2)"))
+        TrickySql6Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is not a '':bind_param''', $1, $2)",
+        ))
     }
     pub struct TrickySql6Stmt(crate::client::sync::Stmt);
     impl TrickySql6Stmt {
@@ -731,26 +743,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql6Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql6Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql6Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql7() -> TrickySql7Stmt {
-        TrickySql7Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is not a \':bind_param\'', $1, $2)"))
+        TrickySql7Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is not a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql7Stmt(crate::client::sync::Stmt);
     impl TrickySql7Stmt {
@@ -764,26 +778,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql7Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql7Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql7Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql8() -> TrickySql8Stmt {
-        TrickySql8Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is ''not'' a \':bind_param\'', $1, $2)"))
+        TrickySql8Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is ''not'' a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql8Stmt(crate::client::sync::Stmt);
     impl TrickySql8Stmt {
@@ -797,26 +813,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql8Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql8Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql8Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql9() -> TrickySql9Stmt {
-        TrickySql9Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is \'not\' a \':bind_param\'', $1, $2)"))
+        TrickySql9Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is \\'not\\' a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql9Stmt(crate::client::sync::Stmt);
     impl TrickySql9Stmt {
@@ -830,26 +848,28 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql9Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql9Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql9Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
         }
     }
     pub fn tricky_sql10() -> TrickySql10Stmt {
-        TrickySql10Stmt(crate::client::sync::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is just a cast'::text, $1, $2)"))
+        TrickySql10Stmt(crate::client::sync::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is just a cast'::text, $1, $2)",
+        ))
     }
     pub struct TrickySql10Stmt(crate::client::sync::Stmt);
     impl TrickySql10Stmt {
@@ -863,19 +883,19 @@ pub mod sync {
             client.execute(stmt, &[r#async, r#enum])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::TrickySql10Params,
             Result<u64, postgres::Error>,
             C,
         > for TrickySql10Stmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::TrickySql10Params,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.r#async, &params.r#enum)
@@ -899,7 +919,7 @@ pub mod sync {
                     r#async: row.get(1),
                     r#enum: row.get(2),
                 },
-                mapper: |it| <super::Typeof>::from(it),
+                mapper: |it| super::Typeof::from(it),
             }
         }
     }
@@ -1195,9 +1215,7 @@ pub mod async_ {
         }
     }
     pub fn select_spaced() -> SelectSpacedStmt {
-        SelectSpacedStmt(crate::client::async_::Stmt::new(
-            "      SELECT * FROM clone ",
-        ))
+        SelectSpacedStmt(crate::client::async_::Stmt::new("SELECT * FROM clone"))
     }
     pub struct SelectSpacedStmt(crate::client::async_::Stmt);
     impl SelectSpacedStmt {
@@ -1312,7 +1330,7 @@ pub mod async_ {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::Row { id: row.get(0) },
-                mapper: |it| <super::Row>::from(it),
+                mapper: |it| super::Row::from(it),
             }
         }
     }
@@ -1352,7 +1370,7 @@ pub mod async_ {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::RowSpace { id: row.get(0) },
-                mapper: |it| <super::RowSpace>::from(it),
+                mapper: |it| super::RowSpace::from(it),
             }
         }
     }
@@ -1375,7 +1393,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql() -> TrickySqlStmt {
-        TrickySqlStmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a bind_param\', $1, $2)"))
+        TrickySqlStmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a bind_param\\', $1, $2)",
+        ))
     }
     pub struct TrickySqlStmt(crate::client::async_::Stmt);
     impl TrickySqlStmt {
@@ -1412,7 +1432,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql1() -> TrickySql1Stmt {
-        TrickySql1Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a :bind_param', $1, $2)"))
+        TrickySql1Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a :bind_param', $1, $2)",
+        ))
     }
     pub struct TrickySql1Stmt(crate::client::async_::Stmt);
     impl TrickySql1Stmt {
@@ -1449,7 +1471,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql2() -> TrickySql2Stmt {
-        TrickySql2Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a '':bind_param''', $1, $2)"))
+        TrickySql2Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is not a '':bind_param''', $1, $2)",
+        ))
     }
     pub struct TrickySql2Stmt(crate::client::async_::Stmt);
     impl TrickySql2Stmt {
@@ -1486,7 +1510,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql3() -> TrickySql3Stmt {
-        TrickySql3Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum)  VALUES ($$this is not a :bind_param$$, $1, $2)"))
+        TrickySql3Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum)  VALUES ($$this is not a :bind_param$$, $1, $2)",
+        ))
     }
     pub struct TrickySql3Stmt(crate::client::async_::Stmt);
     impl TrickySql3Stmt {
@@ -1523,7 +1549,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql4() -> TrickySql4Stmt {
-        TrickySql4Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ($tag$this is not a :bind_param$tag$, $1, $2)"))
+        TrickySql4Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ($tag$this is not a :bind_param$tag$, $1, $2)",
+        ))
     }
     pub struct TrickySql4Stmt(crate::client::async_::Stmt);
     impl TrickySql4Stmt {
@@ -1560,7 +1588,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql6() -> TrickySql6Stmt {
-        TrickySql6Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is not a '':bind_param''', $1, $2)"))
+        TrickySql6Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is not a '':bind_param''', $1, $2)",
+        ))
     }
     pub struct TrickySql6Stmt(crate::client::async_::Stmt);
     impl TrickySql6Stmt {
@@ -1597,7 +1627,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql7() -> TrickySql7Stmt {
-        TrickySql7Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is not a \':bind_param\'', $1, $2)"))
+        TrickySql7Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is not a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql7Stmt(crate::client::async_::Stmt);
     impl TrickySql7Stmt {
@@ -1634,7 +1666,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql8() -> TrickySql8Stmt {
-        TrickySql8Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is ''not'' a \':bind_param\'', $1, $2)"))
+        TrickySql8Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (e'this is ''not'' a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql8Stmt(crate::client::async_::Stmt);
     impl TrickySql8Stmt {
@@ -1671,7 +1705,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql9() -> TrickySql9Stmt {
-        TrickySql9Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is \'not\' a \':bind_param\'', $1, $2)"))
+        TrickySql9Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES (E'this is \\'not\\' a \\':bind_param\\'', $1, $2)",
+        ))
     }
     pub struct TrickySql9Stmt(crate::client::async_::Stmt);
     impl TrickySql9Stmt {
@@ -1708,7 +1744,9 @@ pub mod async_ {
         }
     }
     pub fn tricky_sql10() -> TrickySql10Stmt {
-        TrickySql10Stmt(crate::client::async_::Stmt::new("INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is just a cast'::text, $1, $2)"))
+        TrickySql10Stmt(crate::client::async_::Stmt::new(
+            "INSERT INTO syntax (\"trick:y\", async, enum) VALUES ('this is just a cast'::text, $1, $2)",
+        ))
     }
     pub struct TrickySql10Stmt(crate::client::async_::Stmt);
     impl TrickySql10Stmt {
@@ -1762,7 +1800,7 @@ pub mod async_ {
                     r#async: row.get(1),
                     r#enum: row.get(2),
                 },
-                mapper: |it| <super::Typeof>::from(it),
+                mapper: |it| super::Typeof::from(it),
             }
         }
     }

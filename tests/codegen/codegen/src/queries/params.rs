@@ -45,7 +45,7 @@ impl<'a> From<FindBooksBorrowed<'a>> for FindBooks {
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct SelectBookQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -165,19 +165,19 @@ pub mod sync {
             client.execute(stmt, &[author, name])
         }
     }
-    impl<'a, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
+    impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::InsertBookParams<T1, T2>,
             Result<u64, postgres::Error>,
             C,
         > for InsertBookStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::InsertBookParams<T1, T2>,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.author, &params.name)
@@ -200,7 +200,7 @@ pub mod sync {
                     name: row.get(0),
                     author: row.get(1),
                 },
-                mapper: |it| <super::SelectBook>::from(it),
+                mapper: |it| super::SelectBook::from(it),
             }
         }
     }
@@ -231,7 +231,7 @@ pub mod sync {
                     name: row.get(0),
                     author: row.get(1),
                 },
-                mapper: |it| <super::FindBooks>::from(it),
+                mapper: |it| super::FindBooks::from(it),
             }
         }
     }
@@ -268,19 +268,19 @@ pub mod sync {
             client.execute(stmt, &[c, a])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::ParamsOrderParams,
             Result<u64, postgres::Error>,
             C,
         > for ParamsOrderStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::ParamsOrderParams,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.c, &params.a)
@@ -463,7 +463,7 @@ pub mod async_ {
                     name: row.get(0),
                     author: row.get(1),
                 },
-                mapper: |it| <super::SelectBook>::from(it),
+                mapper: |it| super::SelectBook::from(it),
             }
         }
     }
@@ -494,7 +494,7 @@ pub mod async_ {
                     name: row.get(0),
                     author: row.get(1),
                 },
-                mapper: |it| <super::FindBooks>::from(it),
+                mapper: |it| super::FindBooks::from(it),
             }
         }
     }

@@ -718,7 +718,7 @@ impl<'a> From<EverythingArrayNullBorrowed<'a>> for EverythingArrayNull {
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct EverythingQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -1074,12 +1074,7 @@ pub mod sync {
         }
     }
     pub fn select_everything() -> SelectEverythingStmt {
-        SelectEverythingStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    Everything",
-        ))
+        SelectEverythingStmt(crate::client::sync::Stmt::new("SELECT * FROM Everything"))
     }
     pub struct SelectEverythingStmt(crate::client::sync::Stmt);
     impl SelectEverythingStmt {
@@ -1129,17 +1124,12 @@ FROM
                     macaddr_: row.get(34),
                     numeric_: row.get(35),
                 },
-                mapper: |it| <super::Everything>::from(it),
+                mapper: |it| super::Everything::from(it),
             }
         }
     }
     pub fn select_everything_null() -> SelectEverythingNullStmt {
-        SelectEverythingNullStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    Everything",
-        ))
+        SelectEverythingNullStmt(crate::client::sync::Stmt::new("SELECT * FROM Everything"))
     }
     pub struct SelectEverythingNullStmt(crate::client::sync::Stmt);
     impl SelectEverythingNullStmt {
@@ -1189,13 +1179,14 @@ FROM
                     macaddr_: row.get(34),
                     numeric_: row.get(35),
                 },
-                mapper: |it| <super::EverythingNull>::from(it),
+                mapper: |it| super::EverythingNull::from(it),
             }
         }
     }
     pub fn insert_everything() -> InsertEverythingStmt {
-        InsertEverythingStmt(crate::client::sync::Stmt::new("INSERT INTO Everything (bool_, boolean_, char_, smallint_, int2_, smallserial_, serial2_, int_, int4_, serial_, serial4_, bingint_, int8_, bigserial_, serial8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)"))
+        InsertEverythingStmt(crate::client::sync::Stmt::new(
+            "INSERT INTO Everything (bool_, boolean_, char_, smallint_, int2_, smallserial_, serial2_, int_, int4_, serial_, serial4_, bingint_, int8_, bigserial_, serial8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)",
+        ))
     }
     pub struct InsertEverythingStmt(crate::client::sync::Stmt);
     impl InsertEverythingStmt {
@@ -1252,72 +1243,71 @@ FROM
             numeric_: &'a rust_decimal::Decimal,
         ) -> Result<u64, postgres::Error> {
             let stmt = self.0.prepare(client)?;
-            client.execute(
-                stmt,
-                &[
-                    bool_,
-                    boolean_,
-                    char_,
-                    smallint_,
-                    int2_,
-                    smallserial_,
-                    serial2_,
-                    int_,
-                    int4_,
-                    serial_,
-                    serial4_,
-                    bingint_,
-                    int8_,
-                    bigserial_,
-                    serial8_,
-                    float4_,
-                    real_,
-                    float8_,
-                    double_precision_,
-                    text_,
-                    varchar_,
-                    citext_,
-                    ltree_,
-                    bytea_,
-                    timestamp_,
-                    timestamp_without_time_zone_,
-                    timestamptz_,
-                    timestamp_with_time_zone_,
-                    date_,
-                    time_,
-                    json_,
-                    jsonb_,
-                    uuid_,
-                    inet_,
-                    macaddr_,
-                    numeric_,
-                ],
-            )
+            client.execute(stmt, &[
+                bool_,
+                boolean_,
+                char_,
+                smallint_,
+                int2_,
+                smallserial_,
+                serial2_,
+                int_,
+                int4_,
+                serial_,
+                serial4_,
+                bingint_,
+                int8_,
+                bigserial_,
+                serial8_,
+                float4_,
+                real_,
+                float8_,
+                double_precision_,
+                text_,
+                varchar_,
+                citext_,
+                ltree_,
+                bytea_,
+                timestamp_,
+                timestamp_without_time_zone_,
+                timestamptz_,
+                timestamp_with_time_zone_,
+                date_,
+                time_,
+                json_,
+                jsonb_,
+                uuid_,
+                inet_,
+                macaddr_,
+                numeric_,
+            ])
         }
     }
     impl<
-            'a,
-            C: GenericClient,
-            T1: crate::StringSql,
-            T2: crate::StringSql,
-            T3: crate::StringSql,
-            T4: crate::StringSql,
-            T5: crate::BytesSql,
-            T6: crate::JsonSql,
-            T7: crate::JsonSql,
-        >
+        'c,
+        'a,
+        's,
+        C: GenericClient,
+        T1: crate::StringSql,
+        T2: crate::StringSql,
+        T3: crate::StringSql,
+        T4: crate::StringSql,
+        T5: crate::BytesSql,
+        T6: crate::JsonSql,
+        T7: crate::JsonSql,
+    >
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::EverythingParams<T1, T2, T3, T4, T5, T6, T7>,
             Result<u64, postgres::Error>,
             C,
         > for InsertEverythingStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::EverythingParams<T1, T2, T3, T4, T5, T6, T7>,
         ) -> Result<u64, postgres::Error> {
             self.bind(
@@ -1384,10 +1374,7 @@ FROM
     }
     pub fn select_everything_array() -> SelectEverythingArrayStmt {
         SelectEverythingArrayStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    EverythingArray",
+            "SELECT * FROM EverythingArray",
         ))
     }
     pub struct SelectEverythingArrayStmt(crate::client::sync::Stmt);
@@ -1432,16 +1419,13 @@ FROM
                     macaddr_: row.get(28),
                     numeric_: row.get(29),
                 },
-                mapper: |it| <super::EverythingArray>::from(it),
+                mapper: |it| super::EverythingArray::from(it),
             }
         }
     }
     pub fn select_everything_array_null() -> SelectEverythingArrayNullStmt {
         SelectEverythingArrayNullStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    EverythingArray",
+            "SELECT * FROM EverythingArray",
         ))
     }
     pub struct SelectEverythingArrayNullStmt(crate::client::sync::Stmt);
@@ -1486,13 +1470,14 @@ FROM
                     macaddr_: row.get(28),
                     numeric_: row.get(29),
                 },
-                mapper: |it| <super::EverythingArrayNull>::from(it),
+                mapper: |it| super::EverythingArrayNull::from(it),
             }
         }
     }
     pub fn insert_everything_array() -> InsertEverythingArrayStmt {
-        InsertEverythingArrayStmt(crate::client::sync::Stmt::new("INSERT INTO EverythingArray (bool_, boolean_, char_, smallint_, int2_, int_, int4_, bingint_, int8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)"))
+        InsertEverythingArrayStmt(crate::client::sync::Stmt::new(
+            "INSERT INTO EverythingArray (bool_, boolean_, char_, smallint_, int2_, int_, int4_, bingint_, int8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)",
+        ))
     }
     pub struct InsertEverythingArrayStmt(crate::client::sync::Stmt);
     impl InsertEverythingArrayStmt {
@@ -1573,88 +1558,87 @@ FROM
             numeric_: &'a T37,
         ) -> Result<u64, postgres::Error> {
             let stmt = self.0.prepare(client)?;
-            client.execute(
-                stmt,
-                &[
-                    bool_,
-                    boolean_,
-                    char_,
-                    smallint_,
-                    int2_,
-                    int_,
-                    int4_,
-                    bingint_,
-                    int8_,
-                    float4_,
-                    real_,
-                    float8_,
-                    double_precision_,
-                    text_,
-                    varchar_,
-                    citext_,
-                    ltree_,
-                    bytea_,
-                    timestamp_,
-                    timestamp_without_time_zone_,
-                    timestamptz_,
-                    timestamp_with_time_zone_,
-                    date_,
-                    time_,
-                    json_,
-                    jsonb_,
-                    uuid_,
-                    inet_,
-                    macaddr_,
-                    numeric_,
-                ],
-            )
+            client.execute(stmt, &[
+                bool_,
+                boolean_,
+                char_,
+                smallint_,
+                int2_,
+                int_,
+                int4_,
+                bingint_,
+                int8_,
+                float4_,
+                real_,
+                float8_,
+                double_precision_,
+                text_,
+                varchar_,
+                citext_,
+                ltree_,
+                bytea_,
+                timestamp_,
+                timestamp_without_time_zone_,
+                timestamptz_,
+                timestamp_with_time_zone_,
+                date_,
+                time_,
+                json_,
+                jsonb_,
+                uuid_,
+                inet_,
+                macaddr_,
+                numeric_,
+            ])
         }
     }
     impl<
-            'a,
-            C: GenericClient,
-            T1: crate::ArraySql<Item = bool>,
-            T2: crate::ArraySql<Item = bool>,
-            T3: crate::ArraySql<Item = i8>,
-            T4: crate::ArraySql<Item = i16>,
-            T5: crate::ArraySql<Item = i16>,
-            T6: crate::ArraySql<Item = i32>,
-            T7: crate::ArraySql<Item = i32>,
-            T8: crate::ArraySql<Item = i64>,
-            T9: crate::ArraySql<Item = i64>,
-            T10: crate::ArraySql<Item = f32>,
-            T11: crate::ArraySql<Item = f32>,
-            T12: crate::ArraySql<Item = f64>,
-            T13: crate::ArraySql<Item = f64>,
-            T14: crate::StringSql,
-            T15: crate::ArraySql<Item = T14>,
-            T16: crate::StringSql,
-            T17: crate::ArraySql<Item = T16>,
-            T18: crate::StringSql,
-            T19: crate::ArraySql<Item = T18>,
-            T20: crate::StringSql,
-            T21: crate::ArraySql<Item = T20>,
-            T22: crate::BytesSql,
-            T23: crate::ArraySql<Item = T22>,
-            T24: crate::ArraySql<Item = crate::types::time::Timestamp>,
-            T25: crate::ArraySql<Item = crate::types::time::Timestamp>,
-            T26: crate::ArraySql<Item = crate::types::time::TimestampTz>,
-            T27: crate::ArraySql<Item = crate::types::time::TimestampTz>,
-            T28: crate::ArraySql<Item = crate::types::time::Date>,
-            T29: crate::ArraySql<Item = crate::types::time::Time>,
-            T30: crate::JsonSql,
-            T31: crate::ArraySql<Item = T30>,
-            T32: crate::JsonSql,
-            T33: crate::ArraySql<Item = T32>,
-            T34: crate::ArraySql<Item = uuid::Uuid>,
-            T35: crate::ArraySql<Item = std::net::IpAddr>,
-            T36: crate::ArraySql<Item = eui48::MacAddress>,
-            T37: crate::ArraySql<Item = rust_decimal::Decimal>,
-        >
+        'c,
+        'a,
+        's,
+        C: GenericClient,
+        T1: crate::ArraySql<Item = bool>,
+        T2: crate::ArraySql<Item = bool>,
+        T3: crate::ArraySql<Item = i8>,
+        T4: crate::ArraySql<Item = i16>,
+        T5: crate::ArraySql<Item = i16>,
+        T6: crate::ArraySql<Item = i32>,
+        T7: crate::ArraySql<Item = i32>,
+        T8: crate::ArraySql<Item = i64>,
+        T9: crate::ArraySql<Item = i64>,
+        T10: crate::ArraySql<Item = f32>,
+        T11: crate::ArraySql<Item = f32>,
+        T12: crate::ArraySql<Item = f64>,
+        T13: crate::ArraySql<Item = f64>,
+        T14: crate::StringSql,
+        T15: crate::ArraySql<Item = T14>,
+        T16: crate::StringSql,
+        T17: crate::ArraySql<Item = T16>,
+        T18: crate::StringSql,
+        T19: crate::ArraySql<Item = T18>,
+        T20: crate::StringSql,
+        T21: crate::ArraySql<Item = T20>,
+        T22: crate::BytesSql,
+        T23: crate::ArraySql<Item = T22>,
+        T24: crate::ArraySql<Item = crate::types::time::Timestamp>,
+        T25: crate::ArraySql<Item = crate::types::time::Timestamp>,
+        T26: crate::ArraySql<Item = crate::types::time::TimestampTz>,
+        T27: crate::ArraySql<Item = crate::types::time::TimestampTz>,
+        T28: crate::ArraySql<Item = crate::types::time::Date>,
+        T29: crate::ArraySql<Item = crate::types::time::Time>,
+        T30: crate::JsonSql,
+        T31: crate::ArraySql<Item = T30>,
+        T32: crate::JsonSql,
+        T33: crate::ArraySql<Item = T32>,
+        T34: crate::ArraySql<Item = uuid::Uuid>,
+        T35: crate::ArraySql<Item = std::net::IpAddr>,
+        T36: crate::ArraySql<Item = eui48::MacAddress>,
+        T37: crate::ArraySql<Item = rust_decimal::Decimal>,
+    >
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::EverythingArrayParams<
                 T1,
                 T2,
@@ -1699,8 +1683,8 @@ FROM
         > for InsertEverythingArrayStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::EverythingArrayParams<
                 T1,
                 T2,
@@ -1777,12 +1761,7 @@ FROM
         }
     }
     pub fn select_nightmare() -> SelectNightmareStmt {
-        SelectNightmareStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    nightmare",
-        ))
+        SelectNightmareStmt(crate::client::sync::Stmt::new("SELECT * FROM nightmare"))
     }
     pub struct SelectNightmareStmt(crate::client::sync::Stmt);
     impl SelectNightmareStmt {
@@ -1801,8 +1780,7 @@ FROM
     }
     pub fn insert_nightmare() -> InsertNightmareStmt {
         InsertNightmareStmt(crate::client::sync::Stmt::new(
-            "INSERT INTO nightmare (composite)
-    VALUES ($1)",
+            "INSERT INTO nightmare (composite) VALUES ($1)",
         ))
     }
     pub struct InsertNightmareStmt(crate::client::sync::Stmt);
@@ -1818,10 +1796,7 @@ FROM
     }
     pub fn select_schema_nightmare() -> SelectSchemaNightmareStmt {
         SelectSchemaNightmareStmt(crate::client::sync::Stmt::new(
-            "SELECT
-    *
-FROM
-    schema.nightmare",
+            "SELECT * FROM schema.nightmare",
         ))
     }
     pub struct SelectSchemaNightmareStmt(crate::client::sync::Stmt);
@@ -1842,8 +1817,7 @@ FROM
     }
     pub fn insert_schema_nightmare() -> InsertSchemaNightmareStmt {
         InsertSchemaNightmareStmt(crate::client::sync::Stmt::new(
-            "INSERT INTO schema.nightmare (composite)
-    VALUES ($1)",
+            "INSERT INTO schema.nightmare (composite) VALUES ($1)",
         ))
     }
     pub struct InsertSchemaNightmareStmt(crate::client::sync::Stmt);
@@ -2244,12 +2218,7 @@ pub mod async_ {
         }
     }
     pub fn select_everything() -> SelectEverythingStmt {
-        SelectEverythingStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    Everything",
-        ))
+        SelectEverythingStmt(crate::client::async_::Stmt::new("SELECT * FROM Everything"))
     }
     pub struct SelectEverythingStmt(crate::client::async_::Stmt);
     impl SelectEverythingStmt {
@@ -2299,17 +2268,12 @@ FROM
                     macaddr_: row.get(34),
                     numeric_: row.get(35),
                 },
-                mapper: |it| <super::Everything>::from(it),
+                mapper: |it| super::Everything::from(it),
             }
         }
     }
     pub fn select_everything_null() -> SelectEverythingNullStmt {
-        SelectEverythingNullStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    Everything",
-        ))
+        SelectEverythingNullStmt(crate::client::async_::Stmt::new("SELECT * FROM Everything"))
     }
     pub struct SelectEverythingNullStmt(crate::client::async_::Stmt);
     impl SelectEverythingNullStmt {
@@ -2359,13 +2323,14 @@ FROM
                     macaddr_: row.get(34),
                     numeric_: row.get(35),
                 },
-                mapper: |it| <super::EverythingNull>::from(it),
+                mapper: |it| super::EverythingNull::from(it),
             }
         }
     }
     pub fn insert_everything() -> InsertEverythingStmt {
-        InsertEverythingStmt(crate::client::async_::Stmt::new("INSERT INTO Everything (bool_, boolean_, char_, smallint_, int2_, smallserial_, serial2_, int_, int4_, serial_, serial4_, bingint_, int8_, bigserial_, serial8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)"))
+        InsertEverythingStmt(crate::client::async_::Stmt::new(
+            "INSERT INTO Everything (bool_, boolean_, char_, smallint_, int2_, smallserial_, serial2_, int_, int4_, serial_, serial4_, bingint_, int8_, bigserial_, serial8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)",
+        ))
     }
     pub struct InsertEverythingStmt(crate::client::async_::Stmt);
     impl InsertEverythingStmt {
@@ -2423,61 +2388,58 @@ FROM
         ) -> Result<u64, tokio_postgres::Error> {
             let stmt = self.0.prepare(client).await?;
             client
-                .execute(
-                    stmt,
-                    &[
-                        bool_,
-                        boolean_,
-                        char_,
-                        smallint_,
-                        int2_,
-                        smallserial_,
-                        serial2_,
-                        int_,
-                        int4_,
-                        serial_,
-                        serial4_,
-                        bingint_,
-                        int8_,
-                        bigserial_,
-                        serial8_,
-                        float4_,
-                        real_,
-                        float8_,
-                        double_precision_,
-                        text_,
-                        varchar_,
-                        citext_,
-                        ltree_,
-                        bytea_,
-                        timestamp_,
-                        timestamp_without_time_zone_,
-                        timestamptz_,
-                        timestamp_with_time_zone_,
-                        date_,
-                        time_,
-                        json_,
-                        jsonb_,
-                        uuid_,
-                        inet_,
-                        macaddr_,
-                        numeric_,
-                    ],
-                )
+                .execute(stmt, &[
+                    bool_,
+                    boolean_,
+                    char_,
+                    smallint_,
+                    int2_,
+                    smallserial_,
+                    serial2_,
+                    int_,
+                    int4_,
+                    serial_,
+                    serial4_,
+                    bingint_,
+                    int8_,
+                    bigserial_,
+                    serial8_,
+                    float4_,
+                    real_,
+                    float8_,
+                    double_precision_,
+                    text_,
+                    varchar_,
+                    citext_,
+                    ltree_,
+                    bytea_,
+                    timestamp_,
+                    timestamp_without_time_zone_,
+                    timestamptz_,
+                    timestamp_with_time_zone_,
+                    date_,
+                    time_,
+                    json_,
+                    jsonb_,
+                    uuid_,
+                    inet_,
+                    macaddr_,
+                    numeric_,
+                ])
                 .await
         }
     }
     impl<
-            'a,
-            C: GenericClient + Send + Sync,
-            T1: crate::StringSql,
-            T2: crate::StringSql,
-            T3: crate::StringSql,
-            T4: crate::StringSql,
-            T5: crate::BytesSql,
-            T6: crate::JsonSql,
-            T7: crate::JsonSql,
-        >
+        'a,
+        C: GenericClient + Send + Sync,
+        T1: crate::StringSql,
+        T2: crate::StringSql,
+        T3: crate::StringSql,
+        T4: crate::StringSql,
+        T5: crate::BytesSql,
+        T6: crate::JsonSql,
+        T7: crate::JsonSql,
+    >
         crate::client::async_::Params<
             'a,
             'a,
@@ -2560,10 +2522,7 @@ FROM
     }
     pub fn select_everything_array() -> SelectEverythingArrayStmt {
         SelectEverythingArrayStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    EverythingArray",
+            "SELECT * FROM EverythingArray",
         ))
     }
     pub struct SelectEverythingArrayStmt(crate::client::async_::Stmt);
@@ -2608,16 +2567,13 @@ FROM
                     macaddr_: row.get(28),
                     numeric_: row.get(29),
                 },
-                mapper: |it| <super::EverythingArray>::from(it),
+                mapper: |it| super::EverythingArray::from(it),
             }
         }
     }
     pub fn select_everything_array_null() -> SelectEverythingArrayNullStmt {
         SelectEverythingArrayNullStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    EverythingArray",
+            "SELECT * FROM EverythingArray",
         ))
     }
     pub struct SelectEverythingArrayNullStmt(crate::client::async_::Stmt);
@@ -2662,13 +2618,14 @@ FROM
                     macaddr_: row.get(28),
                     numeric_: row.get(29),
                 },
-                mapper: |it| <super::EverythingArrayNull>::from(it),
+                mapper: |it| super::EverythingArrayNull::from(it),
             }
         }
     }
     pub fn insert_everything_array() -> InsertEverythingArrayStmt {
-        InsertEverythingArrayStmt(crate::client::async_::Stmt::new("INSERT INTO EverythingArray (bool_, boolean_, char_, smallint_, int2_, int_, int4_, bingint_, int8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)"))
+        InsertEverythingArrayStmt(crate::client::async_::Stmt::new(
+            "INSERT INTO EverythingArray (bool_, boolean_, char_, smallint_, int2_, int_, int4_, bingint_, int8_, float4_, real_, float8_, double_precision_, text_, varchar_, citext_, ltree_, bytea_, timestamp_, timestamp_without_time_zone_, timestamptz_, timestamp_with_time_zone_, date_, time_, json_, jsonb_, uuid_, inet_, macaddr_, numeric_) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)",
+        ))
     }
     pub struct InsertEverythingArrayStmt(crate::client::async_::Stmt);
     impl InsertEverythingArrayStmt {
@@ -2750,85 +2707,82 @@ FROM
         ) -> Result<u64, tokio_postgres::Error> {
             let stmt = self.0.prepare(client).await?;
             client
-                .execute(
-                    stmt,
-                    &[
-                        bool_,
-                        boolean_,
-                        char_,
-                        smallint_,
-                        int2_,
-                        int_,
-                        int4_,
-                        bingint_,
-                        int8_,
-                        float4_,
-                        real_,
-                        float8_,
-                        double_precision_,
-                        text_,
-                        varchar_,
-                        citext_,
-                        ltree_,
-                        bytea_,
-                        timestamp_,
-                        timestamp_without_time_zone_,
-                        timestamptz_,
-                        timestamp_with_time_zone_,
-                        date_,
-                        time_,
-                        json_,
-                        jsonb_,
-                        uuid_,
-                        inet_,
-                        macaddr_,
-                        numeric_,
-                    ],
-                )
+                .execute(stmt, &[
+                    bool_,
+                    boolean_,
+                    char_,
+                    smallint_,
+                    int2_,
+                    int_,
+                    int4_,
+                    bingint_,
+                    int8_,
+                    float4_,
+                    real_,
+                    float8_,
+                    double_precision_,
+                    text_,
+                    varchar_,
+                    citext_,
+                    ltree_,
+                    bytea_,
+                    timestamp_,
+                    timestamp_without_time_zone_,
+                    timestamptz_,
+                    timestamp_with_time_zone_,
+                    date_,
+                    time_,
+                    json_,
+                    jsonb_,
+                    uuid_,
+                    inet_,
+                    macaddr_,
+                    numeric_,
+                ])
                 .await
         }
     }
     impl<
-            'a,
-            C: GenericClient + Send + Sync,
-            T1: crate::ArraySql<Item = bool>,
-            T2: crate::ArraySql<Item = bool>,
-            T3: crate::ArraySql<Item = i8>,
-            T4: crate::ArraySql<Item = i16>,
-            T5: crate::ArraySql<Item = i16>,
-            T6: crate::ArraySql<Item = i32>,
-            T7: crate::ArraySql<Item = i32>,
-            T8: crate::ArraySql<Item = i64>,
-            T9: crate::ArraySql<Item = i64>,
-            T10: crate::ArraySql<Item = f32>,
-            T11: crate::ArraySql<Item = f32>,
-            T12: crate::ArraySql<Item = f64>,
-            T13: crate::ArraySql<Item = f64>,
-            T14: crate::StringSql,
-            T15: crate::ArraySql<Item = T14>,
-            T16: crate::StringSql,
-            T17: crate::ArraySql<Item = T16>,
-            T18: crate::StringSql,
-            T19: crate::ArraySql<Item = T18>,
-            T20: crate::StringSql,
-            T21: crate::ArraySql<Item = T20>,
-            T22: crate::BytesSql,
-            T23: crate::ArraySql<Item = T22>,
-            T24: crate::ArraySql<Item = crate::types::time::Timestamp>,
-            T25: crate::ArraySql<Item = crate::types::time::Timestamp>,
-            T26: crate::ArraySql<Item = crate::types::time::TimestampTz>,
-            T27: crate::ArraySql<Item = crate::types::time::TimestampTz>,
-            T28: crate::ArraySql<Item = crate::types::time::Date>,
-            T29: crate::ArraySql<Item = crate::types::time::Time>,
-            T30: crate::JsonSql,
-            T31: crate::ArraySql<Item = T30>,
-            T32: crate::JsonSql,
-            T33: crate::ArraySql<Item = T32>,
-            T34: crate::ArraySql<Item = uuid::Uuid>,
-            T35: crate::ArraySql<Item = std::net::IpAddr>,
-            T36: crate::ArraySql<Item = eui48::MacAddress>,
-            T37: crate::ArraySql<Item = rust_decimal::Decimal>,
-        >
+        'a,
+        C: GenericClient + Send + Sync,
+        T1: crate::ArraySql<Item = bool>,
+        T2: crate::ArraySql<Item = bool>,
+        T3: crate::ArraySql<Item = i8>,
+        T4: crate::ArraySql<Item = i16>,
+        T5: crate::ArraySql<Item = i16>,
+        T6: crate::ArraySql<Item = i32>,
+        T7: crate::ArraySql<Item = i32>,
+        T8: crate::ArraySql<Item = i64>,
+        T9: crate::ArraySql<Item = i64>,
+        T10: crate::ArraySql<Item = f32>,
+        T11: crate::ArraySql<Item = f32>,
+        T12: crate::ArraySql<Item = f64>,
+        T13: crate::ArraySql<Item = f64>,
+        T14: crate::StringSql,
+        T15: crate::ArraySql<Item = T14>,
+        T16: crate::StringSql,
+        T17: crate::ArraySql<Item = T16>,
+        T18: crate::StringSql,
+        T19: crate::ArraySql<Item = T18>,
+        T20: crate::StringSql,
+        T21: crate::ArraySql<Item = T20>,
+        T22: crate::BytesSql,
+        T23: crate::ArraySql<Item = T22>,
+        T24: crate::ArraySql<Item = crate::types::time::Timestamp>,
+        T25: crate::ArraySql<Item = crate::types::time::Timestamp>,
+        T26: crate::ArraySql<Item = crate::types::time::TimestampTz>,
+        T27: crate::ArraySql<Item = crate::types::time::TimestampTz>,
+        T28: crate::ArraySql<Item = crate::types::time::Date>,
+        T29: crate::ArraySql<Item = crate::types::time::Time>,
+        T30: crate::JsonSql,
+        T31: crate::ArraySql<Item = T30>,
+        T32: crate::JsonSql,
+        T33: crate::ArraySql<Item = T32>,
+        T34: crate::ArraySql<Item = uuid::Uuid>,
+        T35: crate::ArraySql<Item = std::net::IpAddr>,
+        T36: crate::ArraySql<Item = eui48::MacAddress>,
+        T37: crate::ArraySql<Item = rust_decimal::Decimal>,
+    >
         crate::client::async_::Params<
             'a,
             'a,
@@ -2959,12 +2913,7 @@ FROM
         }
     }
     pub fn select_nightmare() -> SelectNightmareStmt {
-        SelectNightmareStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    nightmare",
-        ))
+        SelectNightmareStmt(crate::client::async_::Stmt::new("SELECT * FROM nightmare"))
     }
     pub struct SelectNightmareStmt(crate::client::async_::Stmt);
     impl SelectNightmareStmt {
@@ -2983,8 +2932,7 @@ FROM
     }
     pub fn insert_nightmare() -> InsertNightmareStmt {
         InsertNightmareStmt(crate::client::async_::Stmt::new(
-            "INSERT INTO nightmare (composite)
-    VALUES ($1)",
+            "INSERT INTO nightmare (composite) VALUES ($1)",
         ))
     }
     pub struct InsertNightmareStmt(crate::client::async_::Stmt);
@@ -3000,10 +2948,7 @@ FROM
     }
     pub fn select_schema_nightmare() -> SelectSchemaNightmareStmt {
         SelectSchemaNightmareStmt(crate::client::async_::Stmt::new(
-            "SELECT
-    *
-FROM
-    schema.nightmare",
+            "SELECT * FROM schema.nightmare",
         ))
     }
     pub struct SelectSchemaNightmareStmt(crate::client::async_::Stmt);
@@ -3024,8 +2969,7 @@ FROM
     }
     pub fn insert_schema_nightmare() -> InsertSchemaNightmareStmt {
         InsertSchemaNightmareStmt(crate::client::async_::Stmt::new(
-            "INSERT INTO schema.nightmare (composite)
-    VALUES ($1)",
+            "INSERT INTO schema.nightmare (composite) VALUES ($1)",
         ))
     }
     pub struct InsertSchemaNightmareStmt(crate::client::async_::Stmt);

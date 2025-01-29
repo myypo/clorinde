@@ -67,7 +67,7 @@ impl<'a> From<NamedComplexBorrowed<'a>> for NamedComplex {
     }
 }
 pub mod sync {
-    use postgres::{fallible_iterator::FallibleIterator, GenericClient};
+    use postgres::{GenericClient, fallible_iterator::FallibleIterator};
     pub struct IdQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
@@ -220,7 +220,7 @@ pub mod sync {
     }
     pub fn new_named_visible() -> NewNamedVisibleStmt {
         NewNamedVisibleStmt(crate::client::sync::Stmt::new(
-            "INSERT INTO named (name, price, show) VALUES ($1, $2, true) RETURNING id ",
+            "INSERT INTO named (name, price, show) VALUES ($1, $2, true) RETURNING id",
         ))
     }
     pub struct NewNamedVisibleStmt(crate::client::sync::Stmt);
@@ -236,7 +236,7 @@ pub mod sync {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::Id { id: row.get(0) },
-                mapper: |it| <super::Id>::from(it),
+                mapper: |it| super::Id::from(it),
             }
         }
     }
@@ -276,7 +276,7 @@ pub mod sync {
                 params: [price, name],
                 stmt: &mut self.0,
                 extractor: |row| super::Id { id: row.get(0) },
-                mapper: |it| <super::Id>::from(it),
+                mapper: |it| super::Id::from(it),
             }
         }
     }
@@ -317,7 +317,7 @@ pub mod sync {
                     price: row.get(2),
                     show: row.get(3),
                 },
-                mapper: |it| <super::Named>::from(it),
+                mapper: |it| super::Named::from(it),
             }
         }
     }
@@ -343,7 +343,7 @@ pub mod sync {
                     price: row.get(2),
                     show: row.get(3),
                 },
-                mapper: |it| <super::Named>::from(it),
+                mapper: |it| super::Named::from(it),
             }
         }
     }
@@ -364,19 +364,19 @@ pub mod sync {
             client.execute(stmt, &[named, named_with_dot])
         }
     }
-    impl<'a, C: GenericClient>
+    impl<'c, 'a, 's, C: GenericClient>
         crate::client::sync::Params<
+            'c,
             'a,
-            'a,
-            'a,
+            's,
             super::NamedComplexParams<'a>,
             Result<u64, postgres::Error>,
             C,
         > for NewNamedComplexStmt
     {
         fn params(
-            &'a mut self,
-            client: &'a mut C,
+            &'s mut self,
+            client: &'c mut C,
             params: &'a super::NamedComplexParams<'a>,
         ) -> Result<u64, postgres::Error> {
             self.bind(client, &params.named, &params.named_with_dot)
@@ -401,7 +401,7 @@ pub mod sync {
                     named: row.get(0),
                     named_with_dot: row.get(1),
                 },
-                mapper: |it| <super::NamedComplex>::from(it),
+                mapper: |it| super::NamedComplex::from(it),
             }
         }
     }
@@ -573,7 +573,7 @@ pub mod async_ {
     }
     pub fn new_named_visible() -> NewNamedVisibleStmt {
         NewNamedVisibleStmt(crate::client::async_::Stmt::new(
-            "INSERT INTO named (name, price, show) VALUES ($1, $2, true) RETURNING id ",
+            "INSERT INTO named (name, price, show) VALUES ($1, $2, true) RETURNING id",
         ))
     }
     pub struct NewNamedVisibleStmt(crate::client::async_::Stmt);
@@ -589,7 +589,7 @@ pub mod async_ {
                 params: [name, price],
                 stmt: &mut self.0,
                 extractor: |row| super::Id { id: row.get(0) },
-                mapper: |it| <super::Id>::from(it),
+                mapper: |it| super::Id::from(it),
             }
         }
     }
@@ -629,7 +629,7 @@ pub mod async_ {
                 params: [price, name],
                 stmt: &mut self.0,
                 extractor: |row| super::Id { id: row.get(0) },
-                mapper: |it| <super::Id>::from(it),
+                mapper: |it| super::Id::from(it),
             }
         }
     }
@@ -670,7 +670,7 @@ pub mod async_ {
                     price: row.get(2),
                     show: row.get(3),
                 },
-                mapper: |it| <super::Named>::from(it),
+                mapper: |it| super::Named::from(it),
             }
         }
     }
@@ -696,7 +696,7 @@ pub mod async_ {
                     price: row.get(2),
                     show: row.get(3),
                 },
-                mapper: |it| <super::Named>::from(it),
+                mapper: |it| super::Named::from(it),
             }
         }
     }
@@ -758,7 +758,7 @@ pub mod async_ {
                     named: row.get(0),
                     named_with_dot: row.get(1),
                 },
-                mapper: |it| <super::NamedComplex>::from(it),
+                mapper: |it| super::NamedComplex::from(it),
             }
         }
     }

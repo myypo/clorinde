@@ -6,15 +6,18 @@ license = "MIT/Apache-2.0"
 description = "Generate type-checked Rust from your PostgreSQL queries."
 homepage = "https://github.com/halcyonnouveau/clorinde"
 repository = "https://github.com/halcyonnouveau/clorinde"
-readme = "../../README.md"
+readme = "../README.md"
 categories = ["database"]
 keywords = ["postgresql", "query", "generator", "sql", "tokio-postgres"]
 publish = true
 
 [dependencies]
-# Ergonomic codegen tools
-codegen_template = { path = "../codegen_template", version = "0.1.0" }
+# Codegen tools
 indoc = "2.0.5"
+quote = "1.0.38"
+prettyplease = "0.2.29"
+syn = { version = "2.0.96", features = ["full"] }
+proc-macro2 = "1.0.93"
 
 # Postgres interaction
 postgres = "0.19.9"
