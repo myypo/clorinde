@@ -8,11 +8,11 @@ fn bench(c: &mut Criterion) {
     clorinde::container::setup(false).unwrap();
     let client = &mut clorinde_conn().unwrap();
     let tmp = tempfile::tempdir().unwrap();
-    clorinde::load_schema(client, &["../test_codegen/schema.sql"]).unwrap();
+    clorinde::load_schema(client, &["../tests/codegen/schema.sql"]).unwrap();
 
     let mut cfg = Config::default();
 
-    cfg.queries = PathBuf::from_str("../test_codegen/queries").unwrap();
+    cfg.queries = PathBuf::from_str("../tests/codegen/queries").unwrap();
     cfg.destination = tmp.into_path();
     cfg.sync = true;
     cfg.r#async = false;
