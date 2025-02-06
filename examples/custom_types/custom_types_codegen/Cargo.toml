@@ -1,4 +1,4 @@
-# This file was generated with `clorinde`. Do not modify
+# This file was generated with `clorinde`. Do not modify.
 [package]
 name = "custom_types_codegen"
 version = "0.1.0"
@@ -22,7 +22,10 @@ postgres-types = { version = "0.2.8", features = ["derive"] }
 postgres-protocol = "0.6.7"
 # Iterator utils required for working with `postgres_protocol::types::ArrayValues`
 fallible-iterator = "0.2.0"
+
+## Custom type crates
 ctypes = { path = "../ctypes" }
+postgres_range = { version = "0.11.1", features = ["with-chrono-0_4"] }
 
 ## Types dependencies
 # TIME, DATE, TIMESTAMP or TIMESTAMPZ

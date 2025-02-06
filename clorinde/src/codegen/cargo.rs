@@ -49,7 +49,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         .expect("unable to serialize package");
 
     let mut buf = formatdoc! {r#"
-        # This file was generated with `clorinde`. Do not modify
+        # This file was generated with `clorinde`. Do not modify.
         {package}
     "#};
 
@@ -124,6 +124,8 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
 
     // add custom type crates
     if !config.types.mapping.is_empty() {
+        writeln!(buf, "\n## Custom type crates").unwrap();
+
         let references_default_crate = config.types.mapping.values().any(|t| {
             match t {
                 crate::config::TypeMapping::Simple(t) => t,
@@ -131,78 +133,25 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             }
             .starts_with("ctypes::")
         });
+
         if !config.types.crate_info.is_empty() {
             for (name, dep) in &config.types.crate_info {
                 match dep {
                     CrateDependency::Simple(version) => {
-                        writedoc! { buf, r#"
-                        {name} = "{version}"
-                    "#}
-                        .unwrap();
+                        writeln!(buf, "{} = \"{}\"", name, version).unwrap();
                     }
-                    CrateDependency::Detailed {
-                        version,
-                        path,
-                        features,
-                        default_features,
-                        optional,
-                    } => {
-                        writedoc! { buf, r#"
-                        {name} = {{"#}
-                        .unwrap();
-
-                        let mut first = true;
-
-                        if let Some(version) = version {
-                            write!(buf, r#"version = "{version}""#).unwrap();
-                            first = false;
-                        }
-                        if let Some(path) = path {
-                            if !first {
-                                write!(buf, ", ").unwrap();
-                            }
-                            write!(buf, r#"path = "{path}""#).unwrap();
-                            first = false;
-                        }
-                        if let Some(features) = features {
-                            if !first {
-                                write!(buf, ", ").unwrap();
-                            }
-                            write!(buf, r#"features = ["#).unwrap();
-                            for (i, feature) in features.iter().enumerate() {
-                                if i > 0 {
-                                    write!(buf, ", ").unwrap();
-                                }
-                                write!(buf, r#""{feature}""#).unwrap();
-                            }
-                            write!(buf, "]").unwrap();
-                            first = false;
-                        }
-                        if let Some(default_features) = default_features {
-                            if !first {
-                                write!(buf, ", ").unwrap();
-                            }
-                            write!(buf, r#"default-features = {default_features}"#).unwrap();
-                            first = false;
-                        }
-                        if let Some(optional) = optional {
-                            if !first {
-                                write!(buf, ", ").unwrap();
-                            }
-                            write!(buf, r#"optional = {optional}"#).unwrap();
-                        }
-
-                        writedoc! { buf, r#"}}
-                        "#}
-                        .unwrap();
+                    CrateDependency::Detailed { .. } => {
+                        let dep_str = toml::to_string(dep)
+                            .unwrap()
+                            .replace('\n', ", ")
+                            .trim_end_matches(", ")
+                            .to_string();
+                        writeln!(buf, "{} = {{ {} }}", name, dep_str).unwrap();
                     }
                 }
             }
         } else if references_default_crate {
-            writedoc! { buf, r#"
-            ctypes = {{ path = "../ctypes" }}
-        "#}
-            .unwrap();
+            writeln!(buf, "ctypes = {{ path = \"../ctypes\" }}").unwrap();
         }
     }
 

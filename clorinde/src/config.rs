@@ -42,7 +42,7 @@ pub struct Types {
     pub mapping: HashMap<String, TypeMapping>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum CrateDependency {
     Simple(String),
