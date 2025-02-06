@@ -39,10 +39,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
-        run: cargo fmt --all -- --check
+        run: cargo +nightly fmt --all -- --check
 
   # Release unpublished packages.
   release-plz-release:

@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::io::Write;
 use std::path::PathBuf;
 
 use crate::{config::Config, conn, container, error::Error, gen_live, gen_managed};
@@ -73,6 +74,28 @@ pub fn run() -> Result<(), Error> {
     cfg.sync = sync;
     cfg.r#async = r#async || !sync;
     cfg.serialize = serialize;
+
+    // Prevent wrong directory being accidentally deleted
+    if !cfg.destination.ends_with("clorinde")
+        && (cfg.destination.exists() && !cfg.destination.join("Cargo.toml").exists())
+    {
+        println!(
+            "The directory '{}' already exists. Running `clorinde` on this directory will delete all files contained within it.",
+            cfg.destination.display()
+        );
+        println!("Do you want to continue? [y/N]");
+        std::io::stdout().flush().expect("Failed to flush stdout");
+
+        let mut input = String::new();
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
+
+        if !matches!(input.trim().to_lowercase().as_str(), "y" | "yes") {
+            println!("Aborting.");
+            std::process::exit(0);
+        }
+    }
 
     match action {
         Action::Live { url } => {
