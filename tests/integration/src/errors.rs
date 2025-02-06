@@ -15,7 +15,8 @@ pub(crate) fn run_errors_test(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let mut successful = true;
     let original_pwd = std::env::current_dir()?;
-    let test_suites = TestSuite::<ErrorTest>::read("fixtures/errors");
+    let fixtures_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/errors");
+    let test_suites = TestSuite::<ErrorTest>::read(fixtures_path);
     let tmp = tempfile::tempdir()?.into_path();
 
     for mut suite in test_suites {

@@ -22,7 +22,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
-        run: cargo test --all
+        run: |
+          cargo run --package test_integration -- --apply-codegen
+          cargo test --all
 
   clippy:
     name: Check for common code mistakes

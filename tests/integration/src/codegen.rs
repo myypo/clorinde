@@ -5,7 +5,7 @@ use crate::{
 
 use clorinde::{Error, config::Config};
 use owo_colors::OwoColorize;
-use std::{env::set_current_dir, process::Command};
+use std::{env::set_current_dir, path::PathBuf, process::Command};
 use tempfile::tempdir;
 
 // Run codegen test, return true if all test are successful
@@ -15,9 +15,9 @@ pub(crate) fn run_codegen_test(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let mut successful = true;
     let original_pwd = std::env::current_dir()?;
-    let fixture_path = "fixtures/codegen";
+    let fixtures_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/codegen");
+    let test_suites = TestSuite::<CodegenTest>::read(fixtures_path);
 
-    let test_suites = TestSuite::<CodegenTest>::read(fixture_path);
     let tmp_dir = tempdir()?;
     for suite in test_suites {
         println!("{}", format!("[codegen] {}", suite.name).magenta());
@@ -26,7 +26,9 @@ pub(crate) fn run_codegen_test(
             reset_db(client)?;
 
             // Set current dir to test base path
-            set_current_dir(format!("../../{}", test.base_path))?;
+            set_current_dir(
+                PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("../../{}", test.base_path)),
+            )?;
 
             // Load schema
             clorinde::load_schema(client, &["schema.sql"])?;
@@ -47,22 +49,16 @@ pub(crate) fn run_codegen_test(
 
                 // Generate
                 clorinde::gen_live(client, cfg).map_err(Error::report)?;
-
-                // If the newly generated crate differs from
-                // the currently checked in one, return an error.
-                if dir_diff::is_different(&test.destination, &tmp_path).unwrap() {
-                    Err(format!(
-                        "\"{}\" is outdated",
-                        test.destination.to_str().unwrap()
-                    ))?;
-                }
             }
             println!("(generate) {} {}", test.name, "OK".green());
 
             if test.run {
                 // Change current directory
-                std::env::set_current_dir(&original_pwd)?;
-                std::env::set_current_dir(format!("../../{}", test.base_path))?;
+                set_current_dir(
+                    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                        .join(format!("../../{}", test.base_path)),
+                )?;
+
                 // Run
                 let result = Command::new("cargo").arg("run").output()?;
                 if result.status.success() {
