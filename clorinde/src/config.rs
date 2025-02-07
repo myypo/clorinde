@@ -46,7 +46,7 @@ pub enum StaticFile {
     Simple(String),
     Detailed {
         path: String,
-        #[serde(default = "default_false")]
+        #[serde(default = "default_false", rename = "hard-link")]
         hard_link: bool,
     },
 }
