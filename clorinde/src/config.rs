@@ -10,6 +10,7 @@ use std::{
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Config {
+    /// Use `podman` instead of `docker`
     #[serde(default = "default_false")]
     pub podman: bool,
     /// Directory containing the queries
@@ -24,14 +25,17 @@ pub struct Config {
     /// Generate asynchronous rust code
     #[serde(default = "default_true")]
     pub r#async: bool,
-    /// Derive serde's `Serialize` trait for generated types.
+    /// Derive serde's `Serialize` trait for generated types
     #[serde(default = "default_false")]
     pub serialize: bool,
 
+    /// Custom type settings
     #[serde(default)]
     pub types: Types,
+    /// The `package` table of the generated `Cargo.toml`
     #[serde(default)]
     pub package: Package,
+    /// List of static files to copy into the generated directory
     #[serde(default, rename = "static")]
     pub static_files: Vec<StaticFile>,
 }
@@ -49,8 +53,10 @@ pub enum StaticFile {
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Types {
+    /// Crates to add as a dependency for custom types
     #[serde(default, rename = "crates")]
     pub crate_info: HashMap<String, CrateDependency>,
+    /// Mapping for custom types
     #[serde(default)]
     pub mapping: HashMap<String, TypeMapping>,
 }
@@ -81,19 +87,6 @@ pub enum TypeMapping {
         #[serde(default = "default_kind")]
         kind: String,
     },
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-#[serde(untagged)]
-pub enum Publish {
-    Bool(bool),
-    Repositories(Vec<String>),
-}
-
-impl Default for Publish {
-    fn default() -> Self {
-        Self::Bool(false)
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -151,6 +144,19 @@ pub struct Package {
     pub autobenches: Option<bool>,
     #[serde(rename = "rust-version", skip_serializing_if = "Option::is_none")]
     pub rust_version: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(untagged)]
+pub enum Publish {
+    Bool(bool),
+    Repositories(Vec<String>),
+}
+
+impl Default for Publish {
+    fn default() -> Self {
+        Self::Bool(false)
+    }
 }
 
 impl Config {
