@@ -1,3 +1,8 @@
 [workspace]
 resolver = "2"
 members = ["benches", "clorinde", "examples/*", "tests/*"]
+
+[workspace.dependencies]
+# Dependencies for examples that have `use-workspace-deps = true`
+chrono = "0.4"
+time = "0.3"

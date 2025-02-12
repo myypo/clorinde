@@ -1,9 +1,8 @@
-use std::fmt::Write;
+use std::{collections::HashSet, fmt::Write, fs, path::Path};
 
-use indoc::{formatdoc, writedoc};
 use postgres_types::{Kind, Type};
 
-use crate::config::{Config, CrateDependency};
+use crate::config::{Config, CrateDependency, DependencyTable, UseWorkspaceDeps};
 
 /// Register use of typed requiring specific dependencies
 #[derive(Debug, Clone, Default)]
@@ -42,16 +41,97 @@ impl DependencyAnalysis {
     }
 }
 
-pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config) -> String {
-    let package = config
-        .package
-        .to_string()
-        .expect("unable to serialize package");
+struct CargoWriter {
+    buf: String,
+    use_workspace_deps: bool,
+    workspace_deps: HashSet<String>,
+}
 
-    let mut buf = formatdoc! {r#"
-        # This file was generated with `clorinde`. Do not modify.
-        {package}
-    "#};
+impl CargoWriter {
+    fn get_workspace_deps(manifest_path: &Path) -> HashSet<String> {
+        let mut deps = HashSet::new();
+        if let Ok(contents) = fs::read_to_string(manifest_path) {
+            if let Ok(manifest) = contents.parse::<toml::Value>() {
+                if let Some(workspace) = manifest
+                    .get("workspace")
+                    .and_then(|w| w.get("dependencies"))
+                {
+                    deps.extend(
+                        workspace
+                            .as_table()
+                            .into_iter()
+                            .flat_map(|t| t.keys())
+                            .map(|s| s.to_string()),
+                    );
+                }
+            }
+        }
+        deps
+    }
+
+    fn new(config: &Config) -> Self {
+        let use_workspace_deps = match &config.use_workspace_deps {
+            UseWorkspaceDeps::Bool(enabled) => *enabled,
+            UseWorkspaceDeps::Path(_) => true,
+        };
+
+        let workspace_deps = match &config.use_workspace_deps {
+            UseWorkspaceDeps::Bool(true) => {
+                CargoWriter::get_workspace_deps(Path::new("./Cargo.toml"))
+            }
+            UseWorkspaceDeps::Bool(false) => HashSet::new(),
+            UseWorkspaceDeps::Path(path) => CargoWriter::get_workspace_deps(path),
+        };
+
+        Self {
+            buf: String::new(),
+            use_workspace_deps,
+            workspace_deps,
+        }
+    }
+
+    fn line(&mut self, line: &str) {
+        writeln!(self.buf, "{}", line).unwrap();
+    }
+
+    fn dep(&mut self, name: &str, mut dep: DependencyTable) {
+        // add `workspace = true` when `use-workspace-deps` option is enabled
+        // and dependency appears in user's Cargo.toml `[workspace.dependencies]`
+        if self.use_workspace_deps && self.workspace_deps.contains(name) {
+            dep.version = None;
+            dep.workspace = Some(true);
+        } else {
+            dep.workspace = None;
+        }
+
+        if dep.is_simple_version() {
+            writeln!(self.buf, "{} = \"{}\"", name, dep.version.unwrap()).unwrap();
+        } else {
+            let dep_str = toml::to_string(&dep)
+                .unwrap()
+                .replace('\n', ", ")
+                .trim_end_matches(", ")
+                .to_string();
+
+            writeln!(self.buf, "{} = {{ {} }}", name, dep_str).unwrap();
+        }
+    }
+
+    fn into_string(self) -> String {
+        self.buf
+    }
+}
+
+pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config) -> String {
+    let mut cargo = CargoWriter::new(config);
+
+    cargo.line("# This file was generated with `clorinde`. Do not modify.");
+    cargo.line(
+        &config
+            .package
+            .to_string()
+            .expect("unable to serialize package"),
+    );
 
     if config.r#async {
         let mut default_features = vec!["\"deadpool\""];
@@ -65,66 +145,48 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             wasm_features.push("\"time?/wasm-bindgen\"");
         }
 
-        let default_features = default_features.join(", ");
-        let wasm_features = wasm_features.join(", ");
-
-        writedoc! { buf, r#"
-
-            [features]
-            default = [{default_features}]
-            deadpool = ["dep:deadpool-postgres", "tokio-postgres/default"]
-            wasm-async = [{wasm_features}]
-        "#}
-        .unwrap()
+        cargo.line("[features]");
+        cargo.line(&format!("default = [{}]", default_features.join(", ")));
+        cargo.line("deadpool = [\"dep:deadpool-postgres\", \"tokio-postgres/default\"]");
+        cargo.line(&format!("wasm-async = [{}]", wasm_features.join(", ")));
     } else {
         let mut wasm_features = vec![];
         if dependency_analysis.has_dependency() && dependency_analysis.chrono {
             wasm_features.push("\"chrono?/wasmbind\"");
         }
 
-        let wasm_features = wasm_features.join(", ");
-
-        writedoc! { buf, r#"
-
-            [features]
-            default = []
-            wasm-sync = [{wasm_features}]
-        "#}
-        .unwrap();
+        cargo.line("[features]");
+        cargo.line("default = []");
+        cargo.line(&format!("wasm-sync = [{}]", wasm_features.join(", ")));
     }
 
     if dependency_analysis.chrono {
-        writedoc! { buf, r#"
-
-            chrono = ["dep:chrono"]
-            time = ["dep:time"]
-        "#}
-        .unwrap();
+        cargo.line("\nchrono = [\"dep:chrono\"]");
+        cargo.line("time = [\"dep:time\"]");
     } else {
-        writedoc! { buf, r#"
-
-            chrono = []
-            time = []
-        "#}
-        .unwrap();
+        cargo.line("\nchrono = []");
+        cargo.line("time = []");
     }
 
-    writedoc! { buf, r#"
+    cargo.line("\n[dependencies]");
+    cargo.line("## Core dependencies");
+    cargo.line("# Postgres types");
 
-        [dependencies]
-        ## Core dependencies
-        # Postgres types
-        postgres-types = {{ version = "0.2.8", features = ["derive"] }}
-        # Postgres interaction
-        postgres-protocol = "0.6.7"
-        # Iterator utils required for working with `postgres_protocol::types::ArrayValues`
-        fallible-iterator = "0.2.0"
-    "#}
-    .unwrap();
+    cargo.dep(
+        "postgres-types",
+        DependencyTable::new("0.2.9").features(vec!["derive"]),
+    );
+
+    cargo.line("# Postgres interaction");
+    cargo.dep("postgres-protocol", DependencyTable::new("0.6.8"));
+
+    cargo
+        .line("# Iterator utils required for working with `postgres_protocol::types::ArrayValues`");
+    cargo.dep("fallible-iterator", DependencyTable::new("0.2.0"));
 
     // add custom type crates
     if !config.types.mapping.is_empty() {
-        writeln!(buf, "\n## Custom type crates").unwrap();
+        cargo.line("\n## Custom type crates");
 
         let references_default_crate = config.types.mapping.values().any(|t| {
             match t {
@@ -138,107 +200,98 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             for (name, dep) in &config.types.crate_info {
                 match dep {
                     CrateDependency::Simple(version) => {
-                        writeln!(buf, "{} = \"{}\"", name, version).unwrap();
+                        cargo.line(&format!("{} = \"{}\"", name, version));
                     }
-                    CrateDependency::Detailed { .. } => {
-                        let dep_str = toml::to_string(dep)
-                            .unwrap()
-                            .replace('\n', ", ")
-                            .trim_end_matches(", ")
-                            .to_string();
-                        writeln!(buf, "{} = {{ {} }}", name, dep_str).unwrap();
+                    CrateDependency::Detailed(dependency) => {
+                        cargo.dep(name, dependency.to_owned());
                     }
                 }
             }
         } else if references_default_crate {
-            writeln!(buf, "ctypes = {{ path = \"../ctypes\" }}").unwrap();
+            cargo.line("ctypes = {{ path = \"../ctypes\" }}");
         }
     }
 
-    let mut client_features = String::new();
+    let mut client_features = Vec::new();
 
     if dependency_analysis.has_dependency() {
-        writeln!(buf, "\n## Types dependencies").unwrap();
+        cargo.line("\n## Types dependencies");
         if dependency_analysis.chrono {
-            writedoc! { buf, r#"
-                # TIME, DATE, TIMESTAMP or TIMESTAMPZ
-                chrono = {{ version = "0.4.39", optional = true }}
-                time = {{ version = "0.3.37", optional = true }}
-            "#}
-            .unwrap();
-            write!(client_features, r#""with-chrono-0_4","#).unwrap();
-            write!(client_features, r#""with-time-0_3","#).unwrap();
+            cargo.line("# TIME, DATE, TIMESTAMP or TIMESTAMPZ");
+            cargo.dep("chrono", DependencyTable::new("0.4.39").optional());
+            cargo.dep("time", DependencyTable::new("0.3.37").optional());
+
+            client_features.push("with-chrono-0_4".to_string());
+            client_features.push("with-time-0_3".to_string());
         }
         if dependency_analysis.uuid {
-            writedoc! { buf, r#"
-                # UUID
-                uuid = "1.11.0"
-            "#}
-            .unwrap();
-            write!(client_features, r#""with-uuid-1","#).unwrap();
+            cargo.line("# UUID");
+            cargo.dep("uuid", DependencyTable::new("1.13.1"));
+            client_features.push("with-uuid-1".to_string());
         }
         if dependency_analysis.mac_addr {
-            writedoc! { buf, r#"
-                # MAC ADDRESS
-                eui48 = {{ version = "1.1.0", default-features = false }}
-            "#}
-            .unwrap();
-            write!(client_features, r#""with-eui48-1","#).unwrap();
+            cargo.line("# MAC ADDRESS");
+            cargo.dep("eui48", DependencyTable::new("1.1.0").no_default_features());
+            client_features.push("with-eui48-1".to_string());
         }
         if dependency_analysis.decimal {
-            writedoc! { buf, r#"
-                # DECIMAL
-                rust_decimal = {{ version = "1.36.0", features = ["db-postgres"] }}
-            "#}
-            .unwrap();
+            cargo.line("# DECIMAL");
+            cargo.dep(
+                "rust_decimal",
+                DependencyTable::new("1.36.0").features(vec!["db-postgres"]),
+            );
         }
-
         if dependency_analysis.json {
-            writedoc! { buf, r#"
-                # JSON or JSONB
-                serde_json = {{ version = "1.0.134", features = ["raw_value"] }}
-                serde = {{ version = "1.0.217", features = ["derive"] }}
-            "#}
-            .unwrap();
-            write!(client_features, r#""with-serde_json-1","#).unwrap();
+            cargo.line("# JSON or JSONB");
+            cargo.dep(
+                "serde_json",
+                DependencyTable::new("1.0.134").features(vec!["raw_value"]),
+            );
+            cargo.dep(
+                "serde",
+                DependencyTable::new("1.0.217").features(vec!["derive"]),
+            );
+            client_features.push("with-serde_json-1".to_string());
         }
     }
 
     // add serde if serializing but not using json type
     if config.serialize && !dependency_analysis.json {
-        writedoc! { buf, r#"
-
-            ## Serialize
-            serde = {{ version = "1.0.217", features = ["derive"] }}
-        "#}
-        .unwrap();
+        cargo.line("# JSON or JSONB");
+        cargo.dep(
+            "serde",
+            DependencyTable::new("1.0.217").features(vec!["derive"]),
+        );
+        client_features.push("with-serde_json-1".to_string());
     }
 
     if config.sync {
-        writedoc! { buf, r#"
-
-            ## Sync client dependencies
-            # Postgres sync client
-            postgres = {{ version = "0.19.9", features = [{client_features}] }}
-        "#}
-        .unwrap();
+        cargo.line("\n## Sync client dependencies");
+        cargo.line("# Postgres sync client");
+        cargo.dep(
+            "postgres",
+            DependencyTable::new("0.19.10").features(client_features.clone()),
+        );
     }
 
     if config.r#async {
-        writedoc! { buf, r#"
+        cargo.line("\n## Async client dependencies");
+        cargo.line("# Postgres async client");
+        cargo.dep(
+            "tokio-postgres",
+            DependencyTable::new("0.7.13").features(client_features),
+        );
 
-            ## Async client dependencies
-            # Postgres async client
-            tokio-postgres = {{ version = "0.7.12", default-features = false, features = [{client_features}] }}
-            # Async utils
-            futures = "0.3.31"
+        cargo.line("# Async utils");
+        cargo.dep("futures", DependencyTable::new("0.3.31"));
 
-            ## Async features dependencies
-            # Async connection pooling
-            deadpool-postgres = {{ version = "0.14.1", optional = true }}
-        "#}
-        .unwrap();
+        cargo.line("\n## Async features dependencies");
+        cargo.line("# Async connection pooling");
+        cargo.dep(
+            "deadpool-postgres",
+            DependencyTable::new("0.14.1").optional(),
+        );
     }
 
-    buf
+    cargo.into_string()
 }
