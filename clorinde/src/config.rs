@@ -141,10 +141,11 @@ impl DependencyTable {
 pub enum TypeMapping {
     Simple(String),
     Detailed {
+        #[serde(rename = "rust-type")]
         rust_type: String,
-        #[serde(default = "default_true")]
+        #[serde(rename = "is-copy", default = "default_true")]
         is_copy: bool,
-        #[serde(default = "default_true")]
+        #[serde(rename = "is-params", default = "default_true")]
         is_params: bool,
         #[serde(default = "default_kind")]
         kind: String,

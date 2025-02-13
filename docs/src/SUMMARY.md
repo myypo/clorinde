@@ -8,6 +8,8 @@
     - [API](./using_clorinde/api.md)
     - [Error reporting](./using_clorinde/error_reporting.md)
 
+- [Configuration](./configuration.md)
+
 - [Writing queries](./writing_queries/writing_queries.md)
     - [Query annotations](./writing_queries/query_annotations.md)
     - [Type annotations](./writing_queries/type_annotations.md)
