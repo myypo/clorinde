@@ -43,7 +43,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
 
         // Bind parameters are "smart". A query that expects a `&str` will also accept other
-        // "string-like" types like `String`. See https://clorinde-rs.netlify.app/book/using_queries/ergonomic_parameters.html
+        // "string-like" types like `String`. See https://halcyonnouveau.github.io/clorinde/using_queries/ergonomic_parameters.html
         // for more details.
         insert_book()
             .bind(&transaction, &String::from("Moby Dick"))
@@ -74,7 +74,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // This query doesn't benefit much, but is still shown for demonstration purposes.
     // ! Note: To use this feature you need to:
     // ! 1. Have a struct generated for your parameters
-    // !    (see https://clorinde-rs.netlify.app/book/writing_queries/type_annotations.html for
+    // !    (see https://halcyonnouveau.github.io/clorinde/writing_queries/type_annotations.html for
     // !    general information and the `queries/module_2.sql` file to see how this particular
     // !    parameter type was created).
     // ! 2. Import the `Params` trait.

@@ -5,7 +5,7 @@ use clorinde::queries::module_2::authors;
 #[tokio::main]
 pub async fn main() {
     // You can learn which database connection types are compatible with Clorinde in the book
-    // https://clorinde-rs.netlify.app/book/using_queries/db_connections.html
+    // https://halcyonnouveau.github.io/clorinde/using_queries/db_connections.html
     let pool = create_pool().await.unwrap();
     let client = pool.get().await.unwrap();
 

@@ -19,20 +19,15 @@ Clorinde generates type-checked Rust interfaces from PostgreSQL queries, with an
 
 ## Key Features
 
-Building on Cornucopia's foundation:
 * SQL-first approach with powerful query validation
 * Sync and async driver support with optional connection pooling
 * Non-allocating row mapping
 * Available as both a library and CLI tool
-* Native `rust-postgres` performance
+* Close to native `rust-postgres` performance
 * Complete support for custom PostgreSQL types (composites, domains, and enums)
+* Custom Rust type mapping
 * One-dimensional array handling for all supported types
 * Granular type nullity control
-
-Clorinde adds:
-* Crate-based code generation architecture 
-* Full wasm compatibility
-* Custom Rust type mapping
 
 ## Installation
 
@@ -44,16 +39,17 @@ cargo install clorinde
 
 ## Quick Example
 Write your PostgreSQL queries with annotations and named parameters:
-
 ```sql
 -- queries/authors.sql
 
---! authors
-SELECT first_name, last_name, country FROM Authors;
-
 --! insert_author
-INSERT INTO Authors(first_name, last_name, country)
-VALUES (:first_name, :last_name, :country)
+INSERT INTO Author
+    (first_name, last_name, country)
+VALUES
+    (:first_name, :last_name, :country);
+
+--! authors
+SELECT first_name, last_name, country FROM Author;
 ```
 
 Generate the crate with `clorinde`, then you can import it into your project after adding it to your `Cargo.toml`:
@@ -61,17 +57,18 @@ Generate the crate with `clorinde`, then you can import it into your project aft
 clorinde = { path = "./clorinde" }
 ```
 
+And use the generated crate in your code:
 ```rust
-use clorinde::queries{authors, insert_author};
+use clorinde::queries::authors::{authors, insert_author};
 
 insert_author.bind(&client, "Agatha", "Christie", "England");
 
 let all_authors = authors().bind(&client).all();
 
 for author in all_authors {
-  println!("[{}] {}, {}", 
-    author.country, 
-    author.last_name.to_uppercase(), 
+  println!("[{}] {}, {}",
+    author.country,
+    author.last_name.to_uppercase(),
     author.first_name
   )
 }
@@ -85,7 +82,6 @@ This crate uses Rust 2021 edition, which requires at least version 1.62.1.
 
 ## Similar Libraries
 
-- [Cornucopia](https://github.com/cornucopia-rs/cornucopia) - The original project Clorinde is forked from
 - [sqlc](https://github.com/sqlc-dev/sqlc) (Go) - Generate type-safe code from SQL
 - [Kanel](https://github.com/kristiandupont/kanel) (TypeScript) - Generate TypeScript types from Postgres
 - [jOOQ](https://github.com/jOOQ/jOOQ) (Java) - Generate typesafe SQL from your database schema
