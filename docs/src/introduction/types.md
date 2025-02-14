@@ -3,7 +3,7 @@
 | PostgreSQL type                                   | Rust type                 |
 | ------------------------------------------------- | ------------------------- |
 | `bool`, `boolean`                                 | `bool`                    |
-| `"char"`                                          | `i8`                      |
+| `char`                                            | `i8`                      |
 | `smallint`, `int2`, `smallserial`, `serial2`      | `i16`                     |
 | `int`, `int4`, `serial`, `serial4`                | `i32`                     |
 | `bigint`, `int8`, `bigserial`, `serial8`          | `i64`                     |
@@ -13,16 +13,16 @@
 | `varchar`                                         | `String`                  |
 | `bpchar`                                          | `String`                  |
 | `bytea`                                           | `Vec<u8>`                 |
-| `timestamp without time zone`, `timestamp`  | `chrono::NaiveDateTime`   |
-| `timestamp with time zone`, `timestamptz`   | `chrono::DateTime<chrono::FixedOffset>`    |
-| `date`                                      | `chrono::NaiveDate`       |
-| `time`                                      | `chrono::NaiveTime`       |
-| `json`                                      | `serde_json::Value`       |
-| `jsonb`                                     | `serde_json::Value`       |
-| `uuid`                                      | `uuid::Uuid`              |
-| `inet`                                      | `std::net::IpAddr`        |
-| `macaddr`                                   | `eui48::MacAddress`       |
-| `numeric`                                   | `rust_decimal::Decimal`   |
+| `timestamp without time zone`, `timestamp`        | `chrono::NaiveDateTime`   |
+| `timestamp with time zone`, `timestamptz`         | `chrono::DateTime<chrono::FixedOffset>` |
+| `date`                                            | `chrono::NaiveDate`       |
+| `time`                                            | `chrono::NaiveTime`       |
+| `json`                                            | `serde_json::Value`       |
+| `jsonb`                                           | `serde_json::Value`       |
+| `uuid`                                            | `uuid::Uuid`              |
+| `inet`                                            | `std::net::IpAddr`        |
+| `macaddr`                                         | `eui48::MacAddress`       |
+| `numeric`                                         | `rust_decimal::Decimal`   |
 
 ## Custom PostgreSQL types
 Custom types like `enum`, `composite` and `domain` will be generated automatically by inspecting your database. The only requirement for your custom types is that they should be based on other supported types (base or custom).

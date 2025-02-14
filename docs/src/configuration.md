@@ -49,7 +49,28 @@ postgres_range = { version = "0.11.1", features = ["with-chrono-0_4"] }
 
 The `types.crates` table specifies any dependencies needed for your custom type mappings. These will be added to the generated crate's `Cargo.toml`.
 
-The `types.mapping` table allows you to map PostgreSQL types to Rust types. You can use this to either override Clorinde's default mappings or add support for PostgreSQL types that aren't supported by default.
+The `types.mapping` table allows you to map PostgreSQL types to Rust types. You can use this to either override Clorinde's default mappings or add support for PostgreSQL types that aren't supported by default, such as types from extensions.
+
+~~~admonish note
+Your custom types must implement the [`ToSql`](https://docs.rs/postgres-types/latest/postgres_types/trait.ToSql.html) and [`FromSql`](https://docs.rs/postgres-types/latest/postgres_types/trait.FromSql.html)
+traits from the [`postgres-types`](https://crates.io/crates/postgres-types) crate:
+
+```rust
+use postgres_types::{ToSql, FromSql};
+
+impl ToSql for CustomType {
+    // ...
+}
+
+impl FromSql for CustomType {
+    // ...
+}
+```
+
+See the [custom_types](https://github.com/halcyonnouveau/clorinde/blob/main/examples/custom_types/ctypes/src/date.rs) example for a reference implementation.
+
+This ensures that your types can be properly serialised to and deserialised from PostgreSQL's wire format.
+~~~
 
 ## Static Files
 The `static` field allows you to copy or link files into your generated crate directory. This is useful for including files like licenses, build configurations, or other assets that should persist across code generation.
@@ -66,4 +87,3 @@ static = [
 ```
 
 When `hard-link = true` is specified, Clorinde will create a hard link instead of copying the file. This is particularly useful for large files to save disk space.
-

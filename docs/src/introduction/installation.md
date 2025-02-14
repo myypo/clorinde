@@ -6,8 +6,8 @@ You can use Clorinde as a [CLI](/usage/cli.html) or a library [API](/usage/api.h
 To install the latest released version of the CLI, use `cargo install`:
 ```bash
 cargo install clorinde
-
 ```
+
 #### API
 Import `clorinde` in your project's `Cargo.toml`:
 ```toml

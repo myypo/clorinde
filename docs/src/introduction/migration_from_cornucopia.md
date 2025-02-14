@@ -62,7 +62,7 @@ Will generate `clorinde/Cargo.toml` with the specified `[package]` where you can
 
 ## `chrono` instead of `time`
 
-Clorinde uses the `chrono` crate instead of `time` by default. If you want to keep using `time` you can add the `time` feature flag to the generated Clorinde crate.
+Clorinde uses the `chrono` crate instead of `time`. If you want to keep using `time` you can add the `time` feature flag to the generated Clorinde crate.
 
 ```toml
 [dependencies]
@@ -73,3 +73,6 @@ clorinde = { path = "clorinde", default-features = false, features = ["deadpool"
 clorinde = { path = "clorinde", default-features = false, features = ["time"] }
 ```
 
+```admonish warning
+The `time` feature is purely for backwards compatibility with Cornucopia, it will not be supported in future versions of Clorinde.
+```
