@@ -11,12 +11,16 @@ Building a query object starts with either the query function:
 ```rust
 authors().bind(&client, Some("Greece"));
 ```
+
 or the generated parameter struct:
 ```rust
-use clorinde::Params;
+use clorinde::{
+    client::Params,
+    queries::{authors, AuthorsParams}
+};
 
 authors().params(
-    &client, 
+    &client,
     AuthorsParams {
         country: Some("Greece")
     }
@@ -24,7 +28,7 @@ authors().params(
 ```
 The query function is useful when you have a few obvious parameters, while the parameter struct is more explicit.
 
-Note that in order to use the `params` method, you need to import the `Params` trait from your (sync or async) Clorinde client.
+Note that in order to use the `params` method, you need to import the `clorinde::client::Params` trait.
 
 ```admonish note
 Queries that don't have a return value (simple insertions, for example) don't generate a query object. Instead, when calling `bind` or `params` they execute and return the number of rows affected.

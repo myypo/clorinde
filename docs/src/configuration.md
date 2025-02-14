@@ -69,7 +69,7 @@ impl FromSql for CustomType {
 
 See the [custom_types](https://github.com/halcyonnouveau/clorinde/blob/main/examples/custom_types/ctypes/src/date.rs) example for a reference implementation.
 
-This ensures that your types can be properly serialised to and deserialised from PostgreSQL's wire format.
+This ensures that your types can be properly serialized to and deserialized from PostgreSQL's wire format.
 ~~~
 
 ## Static Files

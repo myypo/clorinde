@@ -12,7 +12,8 @@ Here's the list of umbrella traits and the concrete types they abstract over.
 ```admonish
 The pseudo trait bounds given here are very informal, but they should be easy enough to understand.
 
-If you need to see exactly what the trait bounds are, these traits are contained in the `cornucopia_client_core` crate.
+If you need to see exactly what the trait bounds are, these traits are generated from the `core_type_traits` function
+of [codegen/client.rs](https://github.com/halcyonnouveau/clorinde/blob/main/clorinde/src/codegen/client.rs) in Clorinde.
 ```
 
 ## `StringSql`
@@ -26,7 +27,6 @@ If you need to see exactly what the trait bounds are, these traits are contained
 * `&[u8]`
 
 ## `JsonSql`
-*(This trait is only available if the client crate has the `with-serde_json-1` enabled)*
 * `serde_json::Value`
 * `postgres_types::Json`
 
@@ -36,7 +36,7 @@ If you need to see exactly what the trait bounds are, these traits are contained
 * `IterSql`
 
 ### Notes on `IterSql`
-This is a wrapper type available in the client crates. It allows you to treat an iterator as an `ArraySql` for the purpose of passing parameters.
+This is a wrapper type that allows you to treat an iterator as an `ArraySql` for the purpose of passing parameters.
 
 ```admonish note
 Ergonomic parameters are not supported in composite types yet. This means that composite types fields will only accept concrete types. It should be possible to lift this restriction in the future.

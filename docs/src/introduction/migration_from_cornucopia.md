@@ -1,9 +1,7 @@
 # Migration from Cornucopia
-
 Clorinde is a fork of [Cornucopia](https://github.com/cornucopia-rs/cornucopia) which includes a few breaking changes if you want to migrate over.
 
 ## Crate-based code generation
-
 Clorinde generates a *crate* instead of a single file which allows Clorinde to automatically generate a `Cargo.toml` file customised to support all the necessary dependencies and features required by your queries, without polluting your manifest. For example, Cornucopia's ["Full dependencies"](https://cornucopia-rs.netlify.app/book/introduction/dependencies#full-dependencies) example:
 
 ```toml
@@ -61,7 +59,6 @@ publish = true
 Will generate `clorinde/Cargo.toml` with the specified `[package]` where you can then publish the crate as `my-clorinde-queries`.
 
 ## `chrono` instead of `time`
-
 Clorinde uses the `chrono` crate instead of `time`. If you want to keep using `time` you can add the `time` feature flag to the generated Clorinde crate.
 
 ```toml

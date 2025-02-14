@@ -2,6 +2,7 @@
 Type annotations allow you to customize the structs that Clorinde generates for your rows (and parameters, see [the section below](#parameter-structs)). Furthermore, this allows you to share these types between multiple queries.
 
 To create type annotations, declare them using the `--:` syntax. Type annotations only need to declare the nullable columns. Here's how it looks:
+
 ```sql
 --: Author(age?)
 
@@ -22,12 +23,14 @@ Type annotations are declared with this token: `--:`
 
 ## Inline types
 You can also define type inline if you don't plan on reusing them across multiple queries:
+
 ```sql
 --! authors_from_country (country?) : Author()
-SELECT id, name, age 
-FROM Authors 
+SELECT id, name, age
+FROM Authors
 WHERE Authors.nationality = :country;
 ```
+
 Notice how inline types **must** have a set of parenthesis describing their nullable columns. This syntax is often more compact for simple cases. It doesn't have any other special meaning otherwise.
 
 ## Parameter structs

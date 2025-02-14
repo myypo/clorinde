@@ -1,4 +1,4 @@
-![cool hat](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/assets/clorinde_hat.png)
+<img src="https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/assets/clorinde_hat.png" alt="cool hat" style="max-width: 100%;">
 
 # Clorinde
 
@@ -74,13 +74,13 @@ for author in all_authors {
 }
 ```
 
-For more examples go to the [/examples](https://github.com/halcyonnouveau/clorinde/tree/main/examples) directory, or head over to the [book](https://halcyonnouveau.github.io/clorinde/) to learn more.
+For more examples go to the [examples](https://github.com/halcyonnouveau/clorinde/tree/main/examples) directory, or head over to the [book](https://halcyonnouveau.github.io/clorinde/) to learn more.
 
 ## MSRV
 
 This crate uses Rust 2021 edition, which requires at least version 1.62.1.
 
-## Similar Libraries
+## Prior Art
 
 - [sqlc](https://github.com/sqlc-dev/sqlc) (Go) - Generate type-safe code from SQL
 - [Kanel](https://github.com/kristiandupont/kanel) (TypeScript) - Generate TypeScript types from Postgres
