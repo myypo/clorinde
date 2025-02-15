@@ -454,19 +454,28 @@ impl TypeRegistrar {
         }
 
         // check if there's a user-defined mapping first
-        if let Some(mapping) = self.config.clone().get_type_mapping(ty) {
-            return Ok(match mapping {
-                TypeMapping::Simple(name) => self.insert(ty, || ClorindeType::Simple {
-                    pg_ty: ty.clone(),
-                    rust_name: name.to_string(),
-                    is_copy: true,
-                }),
+        let mapping_result = if let Some(mapping) = self.config.get_type_mapping(ty) {
+            match mapping {
+                TypeMapping::Simple(name) => Some((name.to_string(), true, true)),
                 TypeMapping::Detailed {
                     rust_type,
                     is_copy,
                     is_params,
-                } => {
-                    self.resolve_type(ty, rust_type, query_name, module_info, *is_copy, *is_params)?
+                } => Some((rust_type.to_string(), *is_copy, *is_params)),
+            }
+        } else {
+            None
+        };
+
+        if let Some((rust_name, is_copy, is_params)) = mapping_result {
+            return Ok(match ty.kind() {
+                Kind::Simple => self.insert(ty, || ClorindeType::Simple {
+                    pg_ty: ty.clone(),
+                    rust_name,
+                    is_copy,
+                }),
+                _ => {
+                    self.resolve_type(ty, &rust_name, query_name, module_info, is_copy, is_params)?
                 }
             });
         }
