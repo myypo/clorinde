@@ -27,25 +27,25 @@ These results are from benchmarks run locally on `2025-02-15` and may not reflec
   - sqlx: 0.8.3
   - clorinde: 0.12.0
 
-### Trivial Query
-Measures performance of `SELECT * FROM users`
+### `bench_trivial_query`
+Measures performance of `SELECT * FROM users`.
 
-![Trivial Query Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/benches/results/2025-02-15/trivial_query.svg)
+![Trivial Query Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/src/benchmarks/2025-02-15/bench_trivial_query/report/lines.svg)
 
-### Medium Complex Query
-Measures performance of a LEFT JOIN between users and posts
+### `bench_complex_query`
+Measures performance of a LEFT JOIN between users and posts.
 
-![Medium Complex Query Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/benches/results/2025-02-15/medium_complex_query.svg)
+![Medium Complex Query Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/src/benchmarks/2025-02-15/bench_medium_complex_query/report/lines.svg)
 
-### Batch Insert
-Measures performance of inserting multiple rows (1, 100, 1000 rows) in a single transaction
+### `bench_loading_associations_sequentially`
+Measures performance of loading users with their associated posts and comments.
 
-![Batch Insert Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/benches/results/2025-02-15/insert.svg)
+![Loading Associations Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/src/benchmarks/2025-02-15/bench_loading_associations_sequentially/report/violin.svg)
 
-### Loading Associations
-Measures performance of loading users with their associated posts and comments
+### `bench_insert`
+Measures performance of inserting multiple rows (1, 100, 1000 rows).
 
-![Loading Associations Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/benches/results/2025-02-15/loading_associations_sequentially.svg)
+![Batch Insert Benchmark](https://raw.githubusercontent.com/halcyonnouveau/clorinde/refs/heads/main/docs/src/benchmarks/2025-02-15/bench_insert/report/lines.svg)
 
 ## Disclaimer
 These benchmarks are meant to provide a rough comparison of different approaches in a local development environment. Real-world performance can vary significantly based on many factors including network latency, concurrent access patterns, and specific use cases.

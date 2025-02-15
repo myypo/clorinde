@@ -1,22 +1,21 @@
 # Configuration
 Clorinde can be configured using a configuration file (`clorinde.toml` by default) in your project. This file allows you to customise generated code behaviour, specify static files, manage dependencies, and override type mappings.
 
-## Package Configuration
-The `[package]` section allows you to configure any standard Cargo.toml package fields in the generated crate:
+## Package configuration
+The `[package]` section allows you to configure any standard Cargo.toml package field in the generated crate:
 
 ```toml
 [package]
-name = "furinapp"
+name = "furinapp-queries"
 version = "0.1.0"
-description = "Today I wanted to eat a *quaso*"
+description = "Today I wanted to eat a *quaso*."
 license = "MIT"
 edition = "2021"
-# Any other valid Cargo.toml package fields
 ```
 
 All fields specified in this section will be directly copied to the `[package]` section of the generated crate's Cargo.toml. This gives you complete control over the package metadata and configuration of the generated crate.
 
-## Workspace Dependencies
+## Workspace dependencies
 The `use-workspace-deps` option allows you to integrate the generated crate with your workspace's dependency management:
 
 ```toml
@@ -32,7 +31,7 @@ When this option is set, Clorinde will:
 2. Set `workspace = true` for any dependencies that exist in the workspace manifest
 3. Fall back to regular dependency declarations for packages not found in the workspace
 
-## Custom Type Mappings
+## Custom type mappings
 You can configure custom type mappings and their required dependencies using the `types` section:
 
 ```toml
@@ -72,7 +71,7 @@ See the [custom_types](https://github.com/halcyonnouveau/clorinde/blob/main/exam
 This ensures that your types can be properly serialized to and deserialized from PostgreSQL's wire format.
 ~~~
 
-## Static Files
+## Static files
 The `static` field allows you to copy or link files into your generated crate directory. This is useful for including files like licenses, build configurations, or other assets that should persist across code generation.
 
 ```toml
