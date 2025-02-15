@@ -4,8 +4,11 @@
 
 --! users: User
 SELECT * FROM users;
---! insert_user (hair_color?)
-INSERT INTO users (name, hair_color) VALUES (:name, :hair_color);
+
+--! insert_user
+INSERT INTO users (name, hair_color)
+SELECT unnest(:names::text[]) as name,
+       unnest(:hair_colors::text[]) as hair_color;
 
 --! posts: Post
 SELECT * FROM posts;

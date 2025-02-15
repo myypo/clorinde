@@ -1,9 +1,14 @@
 // This file was generated with `clorinde`. Do not modify.
 
 #[derive(Debug)]
-pub struct InsertUserParams<T1: crate::StringSql, T2: crate::StringSql> {
-    pub name: T1,
-    pub hair_color: Option<T2>,
+pub struct InsertUserParams<
+    T1: crate::StringSql,
+    T2: crate::ArraySql<Item = T1>,
+    T3: crate::StringSql,
+    T4: crate::ArraySql<Item = T3>,
+> {
+    pub names: T2,
+    pub hair_colors: T4,
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct User {
@@ -353,27 +358,45 @@ pub mod sync {
     }
     pub fn insert_user() -> InsertUserStmt {
         InsertUserStmt(crate::client::sync::Stmt::new(
-            "INSERT INTO users (name, hair_color) VALUES ($1, $2)",
+            "INSERT INTO users (name, hair_color) SELECT unnest($1::text[]) as name, unnest($2::text[]) as hair_color",
         ))
     }
     pub struct InsertUserStmt(crate::client::sync::Stmt);
     impl InsertUserStmt {
-        pub fn bind<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>(
+        pub fn bind<
+            'c,
+            'a,
+            's,
+            C: GenericClient,
+            T1: crate::StringSql,
+            T2: crate::ArraySql<Item = T1>,
+            T3: crate::StringSql,
+            T4: crate::ArraySql<Item = T3>,
+        >(
             &'s mut self,
             client: &'c mut C,
-            name: &'a T1,
-            hair_color: &'a Option<T2>,
+            names: &'a T2,
+            hair_colors: &'a T4,
         ) -> Result<u64, postgres::Error> {
             let stmt = self.0.prepare(client)?;
-            client.execute(stmt, &[name, hair_color])
+            client.execute(stmt, &[names, hair_colors])
         }
     }
-    impl<'c, 'a, 's, C: GenericClient, T1: crate::StringSql, T2: crate::StringSql>
+    impl<
+        'c,
+        'a,
+        's,
+        C: GenericClient,
+        T1: crate::StringSql,
+        T2: crate::ArraySql<Item = T1>,
+        T3: crate::StringSql,
+        T4: crate::ArraySql<Item = T3>,
+    >
         crate::client::sync::Params<
             'c,
             'a,
             's,
-            super::InsertUserParams<T1, T2>,
+            super::InsertUserParams<T1, T2, T3, T4>,
             Result<u64, postgres::Error>,
             C,
         > for InsertUserStmt
@@ -381,9 +404,9 @@ pub mod sync {
         fn params(
             &'s mut self,
             client: &'c mut C,
-            params: &'a super::InsertUserParams<T1, T2>,
+            params: &'a super::InsertUserParams<T1, T2, T3, T4>,
         ) -> Result<u64, postgres::Error> {
-            self.bind(client, &params.name, &params.hair_color)
+            self.bind(client, &params.names, &params.hair_colors)
         }
     }
     pub fn posts() -> PostsStmt {
@@ -758,7 +781,7 @@ pub mod async_ {
     }
     pub fn insert_user() -> InsertUserStmt {
         InsertUserStmt(crate::client::async_::Stmt::new(
-            "INSERT INTO users (name, hair_color) VALUES ($1, $2)",
+            "INSERT INTO users (name, hair_color) SELECT unnest($1::text[]) as name, unnest($2::text[]) as hair_color",
         ))
     }
     pub struct InsertUserStmt(crate::client::async_::Stmt);
@@ -769,23 +792,32 @@ pub mod async_ {
             's,
             C: GenericClient,
             T1: crate::StringSql,
-            T2: crate::StringSql,
+            T2: crate::ArraySql<Item = T1>,
+            T3: crate::StringSql,
+            T4: crate::ArraySql<Item = T3>,
         >(
             &'s mut self,
             client: &'c C,
-            name: &'a T1,
-            hair_color: &'a Option<T2>,
+            names: &'a T2,
+            hair_colors: &'a T4,
         ) -> Result<u64, tokio_postgres::Error> {
             let stmt = self.0.prepare(client).await?;
-            client.execute(stmt, &[name, hair_color]).await
+            client.execute(stmt, &[names, hair_colors]).await
         }
     }
-    impl<'a, C: GenericClient + Send + Sync, T1: crate::StringSql, T2: crate::StringSql>
+    impl<
+        'a,
+        C: GenericClient + Send + Sync,
+        T1: crate::StringSql,
+        T2: crate::ArraySql<Item = T1>,
+        T3: crate::StringSql,
+        T4: crate::ArraySql<Item = T3>,
+    >
         crate::client::async_::Params<
             'a,
             'a,
             'a,
-            super::InsertUserParams<T1, T2>,
+            super::InsertUserParams<T1, T2, T3, T4>,
             std::pin::Pin<
                 Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
             >,
@@ -795,11 +827,11 @@ pub mod async_ {
         fn params(
             &'a mut self,
             client: &'a C,
-            params: &'a super::InsertUserParams<T1, T2>,
+            params: &'a super::InsertUserParams<T1, T2, T3, T4>,
         ) -> std::pin::Pin<
             Box<dyn futures::Future<Output = Result<u64, tokio_postgres::Error>> + Send + 'a>,
         > {
-            Box::pin(self.bind(client, &params.name, &params.hair_color))
+            Box::pin(self.bind(client, &params.names, &params.hair_colors))
         }
     }
     pub fn posts() -> PostsStmt {

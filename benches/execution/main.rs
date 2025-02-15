@@ -4,15 +4,17 @@ use clorinde::conn::clorinde_conn;
 use criterion::{BenchmarkId, Criterion};
 use diesel::{Connection, PgConnection};
 use postgres::{Client, NoTls, fallible_iterator::FallibleIterator};
+use sqlx::postgres::PgPoolOptions;
 use tokio::runtime::Runtime;
-
-const QUERY_SIZE: &[usize] = &[1, 100, 10_000];
-const INSERT_SIZE: &[usize] = &[1, 100, 1000];
 
 mod clorinde_benches;
 mod diesel_benches;
 mod postgres_benches;
+mod sqlx_benches;
 mod tokio_postgres_benches;
+
+const QUERY_SIZE: &[usize] = &[1, 100, 10_000];
+const INSERT_SIZE: &[usize] = &[1, 100, 1000];
 
 fn clear(client: &mut Client) {
     client
@@ -128,8 +130,10 @@ fn prepare_full(client: &mut Client) {
 fn bench(c: &mut Criterion) {
     clorinde::container::cleanup(false).ok();
     clorinde::container::setup(false).unwrap();
+
     let client = &mut clorinde_conn().unwrap();
     let rt: &'static Runtime = Box::leak(Box::new(Runtime::new().unwrap()));
+
     let async_client = &mut rt.block_on(async {
         let (client, conn) = tokio_postgres::connect(
             "postgresql://postgres:postgres@127.0.0.1:5435/postgres",
@@ -140,9 +144,18 @@ fn bench(c: &mut Criterion) {
         rt.spawn(conn);
         client
     });
-    let conn =
+
+    let diesel_conn =
         &mut PgConnection::establish("postgresql://postgres:postgres@127.0.0.1:5435/postgres")
             .unwrap();
+
+    let sqlx_pool = &mut rt.block_on(async {
+        PgPoolOptions::new()
+            .max_connections(1)
+            .connect("postgresql://postgres:postgres@127.0.0.1:5435/postgres")
+            .await
+            .unwrap()
+    });
 
     clorinde::load_schema(client, &["schema.sql"]).unwrap();
     {
@@ -150,7 +163,10 @@ fn bench(c: &mut Criterion) {
         for size in QUERY_SIZE {
             prepare_client(*size, client, |_| None);
             group.bench_function(BenchmarkId::new("diesel", size), |b| {
-                diesel_benches::bench_trivial_query(b, conn)
+                diesel_benches::bench_trivial_query(b, diesel_conn)
+            });
+            group.bench_function(BenchmarkId::new("sqlx", size), |b| {
+                sqlx_benches::bench_trivial_query(b, sqlx_pool, rt)
             });
             group.bench_function(BenchmarkId::new("postgres", size), |b| {
                 postgres_benches::bench_trivial_query(b, client);
@@ -174,7 +190,10 @@ fn bench(c: &mut Criterion) {
                 Some(if i % 2 == 0 { "black" } else { "brown" })
             });
             group.bench_function(BenchmarkId::new("diesel", size), |b| {
-                diesel_benches::bench_medium_complex_query(b, conn)
+                diesel_benches::bench_medium_complex_query(b, diesel_conn)
+            });
+            group.bench_function(BenchmarkId::new("sqlx", size), |b| {
+                sqlx_benches::bench_medium_complex_query(b, sqlx_pool, rt)
             });
             group.bench_function(BenchmarkId::new("postgres", size), |b| {
                 postgres_benches::bench_medium_complex_query(b, client);
@@ -195,7 +214,10 @@ fn bench(c: &mut Criterion) {
         let mut group = c.benchmark_group("bench_loading_associations_sequentially");
         prepare_full(client);
         group.bench_function("diesel", |b| {
-            diesel_benches::loading_associations_sequentially(b, conn)
+            diesel_benches::loading_associations_sequentially(b, diesel_conn)
+        });
+        group.bench_function("sqlx", |b| {
+            sqlx_benches::loading_associations_sequentially(b, sqlx_pool, rt)
         });
         group.bench_function("postgres", |b| {
             postgres_benches::loading_associations_sequentially(b, client)
@@ -216,7 +238,11 @@ fn bench(c: &mut Criterion) {
         for size in INSERT_SIZE {
             group.bench_with_input(BenchmarkId::new("diesel", size), size, |b, i| {
                 clear(client);
-                diesel_benches::bench_insert(b, conn, *i)
+                diesel_benches::bench_insert(b, diesel_conn, *i)
+            });
+            group.bench_with_input(BenchmarkId::new("sqlx", size), size, |b, i| {
+                clear(client);
+                sqlx_benches::bench_insert(b, sqlx_pool, rt, *i)
             });
             group.bench_with_input(BenchmarkId::new("postgres", size), size, |b, i| {
                 clear(client);
@@ -239,5 +265,6 @@ fn bench(c: &mut Criterion) {
 
     clorinde::container::cleanup(false).unwrap();
 }
+
 criterion::criterion_group!(benches, bench);
 criterion::criterion_main!(benches);

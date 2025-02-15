@@ -42,16 +42,13 @@ pub fn bench_medium_complex_query(b: &mut Bencher, client: &Client) {
 }
 
 pub fn bench_insert(b: &mut Bencher, client: &mut Client, size: usize) {
-    let mut stmt = insert_user();
     b.iter(|| {
         block_on(async {
-            let tx = client.transaction().await.unwrap();
-            for x in 0..size {
-                stmt.bind(&tx, &format!("User {x}").as_str(), &Some("hair_color"))
-                    .await
-                    .unwrap();
-            }
-            tx.commit().await.unwrap();
+            let mut stmt = insert_user();
+            let names: Vec<String> = (0..size).map(|x| format!("User {x}")).collect();
+            let hair_colors: Vec<String> = (0..size).map(|_| "hair_color".to_string()).collect();
+
+            stmt.bind(client, &names, &hair_colors).await.unwrap();
         })
     })
 }
@@ -145,14 +142,11 @@ pub mod sync {
     }
 
     pub fn bench_insert(b: &mut Bencher, client: &mut Client, size: usize) {
-        let mut stmt = insert_user();
         b.iter(|| {
-            let mut tx = client.transaction().unwrap();
-            for x in 0..size {
-                stmt.bind(&mut tx, &format!("User {x}").as_str(), &Some("hair_color"))
-                    .unwrap();
-            }
-            tx.commit().unwrap();
+            let mut stmt = insert_user();
+            let names: Vec<String> = (0..size).map(|x| format!("User {x}")).collect();
+            let hair_colors: Vec<String> = (0..size).map(|_| "hair_color".to_string()).collect();
+            stmt.bind(client, &names, &hair_colors).unwrap();
         })
     }
 
