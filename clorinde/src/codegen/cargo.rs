@@ -197,7 +197,10 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         });
 
         if !config.types.crate_info.is_empty() {
-            for (name, dep) in &config.types.crate_info {
+            let mut crates: Vec<_> = config.types.crate_info.iter().collect();
+            crates.sort_by(|(name_a, _), (name_b, _)| name_a.cmp(name_b));
+
+            for (name, dep) in crates {
                 match dep {
                     CrateDependency::Simple(version) => {
                         cargo.line(&format!("{} = \"{}\"", name, version));
