@@ -147,8 +147,6 @@ pub enum TypeMapping {
         is_copy: bool,
         #[serde(rename = "is-params", default = "default_true")]
         is_params: bool,
-        #[serde(default = "default_kind")]
-        kind: String,
     },
 }
 
@@ -298,10 +296,6 @@ fn default_queries() -> PathBuf {
 
 fn default_destination() -> PathBuf {
     PathBuf::from_str("clorinde").unwrap()
-}
-
-fn default_kind() -> String {
-    "simple".to_string()
 }
 
 fn default_name() -> String {

@@ -47,4 +47,3 @@ CREATE TABLE SpongeBobVoiceActor (
 
 INSERT INTO SpongeBobVoiceActor (voice_actor, character)
     VALUES (ROW ('Bill Fagerbakke', 65), 'Patrick');
-

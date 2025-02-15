@@ -334,14 +334,15 @@ impl TypeRegistrar {
         }
     }
 
-    pub(crate) fn register(
+    fn resolve_type(
         &mut self,
-        name: &str,
         ty: &Type,
+        name: &str,
         query_name: &Span<String>,
         module_info: &ModuleInfo,
+        default_is_copy: bool,
+        default_is_params: bool,
     ) -> Result<&Rc<ClorindeType>, Error> {
-        self.dependency_analysis.analyse(ty);
         fn custom(ty: &Type, is_copy: bool, is_params: bool) -> ClorindeType {
             let rust_ty_name = ty.name().to_upper_camel_case();
             ClorindeType::Custom {
@@ -357,34 +358,6 @@ impl TypeRegistrar {
                 pg_ty: ty.clone(),
                 inner,
             }
-        }
-
-        // check if there's a user-defined mapping first
-        if let Some(mapping) = self.config.clone().get_type_mapping(ty) {
-            return Ok(match mapping {
-                TypeMapping::Simple(name) => self.insert(ty, || ClorindeType::Simple {
-                    pg_ty: ty.clone(),
-                    rust_name: name.to_string(),
-                    is_copy: true,
-                }),
-                TypeMapping::Detailed {
-                    rust_type,
-                    is_copy,
-                    is_params: _,
-                    kind,
-                } => self.insert(ty, move || match kind.as_ref() {
-                    "simple" => ClorindeType::Simple {
-                        pg_ty: ty.clone(),
-                        rust_name: rust_type.clone(),
-                        is_copy: *is_copy,
-                    },
-                    _ => unimplemented!(),
-                }),
-            });
-        }
-
-        if let Some(idx) = self.types.get_index_of(&SchemaKey::from(ty)) {
-            return Ok(&self.types[idx]);
         }
 
         Ok(match ty.kind() {
@@ -404,8 +377,8 @@ impl TypeRegistrar {
                 self.insert(ty, || domain(ty, inner.clone()))
             }
             Kind::Composite(composite_fields) => {
-                let mut is_copy = true;
-                let mut is_params = true;
+                let mut is_copy = default_is_copy;
+                let mut is_params = default_is_params;
                 for field in composite_fields {
                     let field_ty = self.register(name, field.type_(), query_name, module_info)?;
                     is_copy &= field_ty.is_copy();
@@ -465,6 +438,40 @@ impl TypeRegistrar {
                 });
             }
         })
+    }
+
+    pub(crate) fn register(
+        &mut self,
+        name: &str,
+        ty: &Type,
+        query_name: &Span<String>,
+        module_info: &ModuleInfo,
+    ) -> Result<&Rc<ClorindeType>, Error> {
+        self.dependency_analysis.analyse(ty);
+
+        if let Some(idx) = self.types.get_index_of(&SchemaKey::from(ty)) {
+            return Ok(&self.types[idx]);
+        }
+
+        // check if there's a user-defined mapping first
+        if let Some(mapping) = self.config.clone().get_type_mapping(ty) {
+            return Ok(match mapping {
+                TypeMapping::Simple(name) => self.insert(ty, || ClorindeType::Simple {
+                    pg_ty: ty.clone(),
+                    rust_name: name.to_string(),
+                    is_copy: true,
+                }),
+                TypeMapping::Detailed {
+                    rust_type,
+                    is_copy,
+                    is_params,
+                } => {
+                    self.resolve_type(ty, rust_type, query_name, module_info, *is_copy, *is_params)?
+                }
+            });
+        }
+
+        self.resolve_type(ty, name, query_name, module_info, true, true)
     }
 
     pub(crate) fn ref_of(&self, ty: &Type) -> Rc<ClorindeType> {
