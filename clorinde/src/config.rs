@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     /// Use `podman` instead of `docker`
     #[serde(default = "default_false")]
@@ -230,6 +230,26 @@ impl Config {
     pub(crate) fn get_type_mapping(&self, ty: &Type) -> Option<&TypeMapping> {
         let key = format!("{}.{}", ty.schema(), ty.name());
         self.types.mapping.get(&key)
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            podman: false,
+            queries: default_queries(),
+            destination: default_destination(),
+            sync: false,
+            r#async: true,
+            serialize: false,
+            types: Types {
+                crate_info: HashMap::new(),
+                mapping: HashMap::new(),
+            },
+            package: Package::default(),
+            static_files: vec![],
+            use_workspace_deps: UseWorkspaceDeps::Bool(false),
+        }
     }
 }
 

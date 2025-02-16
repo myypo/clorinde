@@ -91,7 +91,7 @@ pub fn run() -> Result<(), Error> {
     cfg.queries = queries_path.unwrap_or(cfg.queries);
     cfg.destination = destination.unwrap_or(cfg.destination);
     cfg.sync = sync.unwrap_or(cfg.sync);
-    cfg.r#async = r#async.map_or(cfg.r#async, |a| a || !cfg.sync);
+    cfg.r#async = r#async.unwrap_or(false) || !cfg.sync;
     cfg.serialize = serialize.unwrap_or(cfg.serialize);
 
     let podman = cfg.podman;
