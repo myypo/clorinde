@@ -45,3 +45,27 @@ FROM example
 ```
 
 Which means that the `compos` column and its field `some_field` are both nullable and that the `arr` column and its elements are also nullable.
+
+## Query documentation comments
+You can add documentation to your queries using `---` comments after the query annotation. These comments will be added as doc strings to the generated Rust code.
+
+```sql
+--! authors_from_country
+--- Finds all authors from a specific country.
+--- Parameters:
+---   country: The nationality to filter by
+SELECT id, name, age
+FROM Authors
+WHERE Authors.nationality = :country;
+```
+
+This will generate:
+
+```rust
+/// Finds all authors from a specific country.
+/// Parameters:
+///   country: The nationality to filter by
+pub fn authors_from_country() -> AuthorsFromCountryStmt {
+    // ...
+}
+```
