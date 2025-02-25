@@ -79,7 +79,7 @@ You can specify `#[derive]` traits for generated structs using this field.
 derive-traits = ["Default", "serde::Deserialize"]
 ```
 
-This will add the `Default` and `serde::Deserialize` traits to **all** structs. If you only want them added to specific structs, see this section in ["Type annotations"](/writing_queries/type_annotations.html#derive-traits).
+This will add the `Default` and `serde::Deserialize` traits to **all** structs. If you only want them added to specific structs, see this section in ["Type annotations"](./writing_queries/type_annotations.html#derive-traits).
 
 ## Static files
 The `static` field allows you to copy or link files into your generated crate directory. This is useful for including files like licenses, build configurations, or other assets that should persist across code generation.
