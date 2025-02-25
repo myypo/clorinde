@@ -1,4 +1,6 @@
---! authors
+--: Author() : Default
+
+--! authors : Author
 SELECT
     *
 FROM
@@ -45,4 +47,3 @@ SELECT
     Translations
 FROM
     Book;
-
