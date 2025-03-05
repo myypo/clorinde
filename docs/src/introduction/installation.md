@@ -1,6 +1,6 @@
 # Installation
 ## Clorinde
-You can use Clorinde as a [CLI](/usage/cli.html) or a library [API](/usage/api.html), depending on your needs. Make sure to check out these sections later for more info.
+You can use Clorinde as a [CLI](../using_clorinde/cli.html) or a library [API](../using_clorinde/api.html), depending on your needs. Make sure to check out these sections later for more info.
 
 #### CLI (Recommended)
 To install the latest released version of the CLI, use `cargo install`:

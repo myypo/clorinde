@@ -34,7 +34,7 @@ Domains are unwrapped into their inner types in your Rust queries.
 ```
 
 ## Custom Rust types
-You can define custom Rust types through a `clorinde.toml` configuration file. See ["Custom Type Mappings"](/configuration.html#custom-type-mappings) for more information.
+You can define custom Rust types through a `clorinde.toml` configuration file. See ["Custom Type Mappings"](../configuration.html#custom-type-mappings) for more information.
 
 ## Array types
 Clorinde supports one-dimensional arrays when the element type is also a type supported. That is, Clorinde supports `example_elem_type[]` if `example_elem_type` is itself a type supported by Clorinde (base or custom).
