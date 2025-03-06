@@ -190,7 +190,16 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         cargo.line("\n## Types dependencies");
         if dependency_analysis.chrono {
             cargo.line("# TIME, DATE, TIMESTAMP or TIMESTAMPZ");
-            cargo.dep("chrono", DependencyTable::new("0.4.39").optional());
+            cargo.dep(
+                "chrono",
+                DependencyTable::new("0.4.39")
+                    .features(if config.serialize || dependency_analysis.json {
+                        vec!["serde"]
+                    } else {
+                        vec![]
+                    })
+                    .optional(),
+            );
             cargo.dep("time", DependencyTable::new("0.3.37").optional());
 
             client_features.push("with-chrono-0_4".to_string());
@@ -198,7 +207,16 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         }
         if dependency_analysis.uuid {
             cargo.line("# UUID");
-            cargo.dep("uuid", DependencyTable::new("1.13.1"));
+            cargo.dep(
+                "uuid",
+                DependencyTable::new("1.13.1").features(
+                    if config.serialize || dependency_analysis.json {
+                        vec!["serde"]
+                    } else {
+                        vec![]
+                    },
+                ),
+            );
             client_features.push("with-uuid-1".to_string());
         }
         if dependency_analysis.mac_addr {
