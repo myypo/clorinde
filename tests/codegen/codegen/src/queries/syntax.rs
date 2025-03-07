@@ -1106,7 +1106,7 @@ pub mod sync {
     }
     pub fn select_inline_comment() -> SelectInlineCommentStmt {
         SelectInlineCommentStmt(crate::client::sync::Stmt::new(
-            "SELECT '-- dont remove this' as c1, $$-- or this$$ as c2, E'-- escape string here' as c3, e'-- another escape string' as c4, $tag$-- dollar quoted here$tag$ as c5",
+            "SELECT '-- dont remove this\\n' as c1, $$-- or this$$ as c2, E'-- escape string here' as c3, e'-- another escape string' as c4, $tag$-- dollar quoted here$tag$ as c5",
         ))
     }
     pub struct SelectInlineCommentStmt(crate::client::sync::Stmt);
@@ -2148,7 +2148,7 @@ pub mod async_ {
     }
     pub fn select_inline_comment() -> SelectInlineCommentStmt {
         SelectInlineCommentStmt(crate::client::async_::Stmt::new(
-            "SELECT '-- dont remove this' as c1, $$-- or this$$ as c2, E'-- escape string here' as c3, e'-- another escape string' as c4, $tag$-- dollar quoted here$tag$ as c5",
+            "SELECT '-- dont remove this\\n' as c1, $$-- or this$$ as c2, E'-- escape string here' as c3, e'-- another escape string' as c4, $tag$-- dollar quoted here$tag$ as c5",
         ))
     }
     pub struct SelectInlineCommentStmt(crate::client::async_::Stmt);

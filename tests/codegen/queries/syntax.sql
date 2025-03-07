@@ -63,7 +63,7 @@ SELECT * FROM syntax;
 --! select_inline_comment
 SELECT
     -- remove this comment:
-    '-- dont remove this' as c1,          -- and this:
+    '-- dont remove this\n' as c1,        -- and this:
     $$-- or this$$ as c2,                 -- and this
     E'-- escape string here' as c3,       -- this too
     -- you guess it, this too

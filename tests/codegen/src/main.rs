@@ -623,7 +623,7 @@ pub fn test_keyword_escaping(client: &mut Client) {
 // Test inline comment removing
 pub fn test_inline_comment(client: &mut Client) {
     let expected = SelectInlineComment {
-        c1: "-- dont remove this".to_string(),
+        c1: "-- dont remove this\\n".to_string(),
         c2: "-- or this".to_string(),
         c3: "-- escape string here".to_string(),
         c4: "-- another escape string".to_string(),
