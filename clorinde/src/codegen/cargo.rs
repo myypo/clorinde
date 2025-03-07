@@ -192,7 +192,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             cargo.line("# TIME, DATE, TIMESTAMP or TIMESTAMPZ");
             cargo.dep(
                 "chrono",
-                DependencyTable::new("0.4.39")
+                DependencyTable::new("0.4.40")
                     .features(if config.serialize || dependency_analysis.json {
                         vec!["serde"]
                     } else {
@@ -200,7 +200,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
                     })
                     .optional(),
             );
-            cargo.dep("time", DependencyTable::new("0.3.37").optional());
+            cargo.dep("time", DependencyTable::new("0.3.39").optional());
 
             client_features.push("with-chrono-0_4".to_string());
             client_features.push("with-time-0_3".to_string());
@@ -209,7 +209,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             cargo.line("# UUID");
             cargo.dep(
                 "uuid",
-                DependencyTable::new("1.13.1").features(
+                DependencyTable::new("1.15.1").features(
                     if config.serialize || dependency_analysis.json {
                         vec!["serde"]
                     } else {
@@ -235,11 +235,11 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             cargo.line("# JSON or JSONB");
             cargo.dep(
                 "serde_json",
-                DependencyTable::new("1.0.134").features(vec!["raw_value"]),
+                DependencyTable::new("1.0.140").features(vec!["raw_value"]),
             );
             cargo.dep(
                 "serde",
-                DependencyTable::new("1.0.217").features(vec!["derive"]),
+                DependencyTable::new("1.0.218").features(vec!["derive"]),
             );
             client_features.push("with-serde_json-1".to_string());
         }
@@ -250,7 +250,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         cargo.line("# JSON or JSONB");
         cargo.dep(
             "serde",
-            DependencyTable::new("1.0.217").features(vec!["derive"]),
+            DependencyTable::new("1.0.218").features(vec!["derive"]),
         );
         client_features.push("with-serde_json-1".to_string());
     }

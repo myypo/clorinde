@@ -24,17 +24,17 @@ fallible-iterator = "0.2.0"
 
 ## Types dependencies
 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
-chrono = { version = "0.4.39", optional = true }
-time = { version = "0.3.37", optional = true }
+chrono = { version = "0.4.40", optional = true, features = ["serde"] }
+time = { version = "0.3.39", optional = true }
 # UUID
-uuid = "1.13.1"
+uuid = { version = "1.15.1", features = ["serde"] }
 # MAC ADDRESS
 eui48 = { version = "1.1.0", default-features = false }
 # DECIMAL
 rust_decimal = { version = "1.36.0", features = ["db-postgres"] }
 # JSON or JSONB
-serde_json = { version = "1.0.134", features = ["raw_value"] }
-serde = { version = "1.0.217", features = ["derive"] }
+serde_json = { version = "1.0.140", features = ["raw_value"] }
+serde = { version = "1.0.218", features = ["derive"] }
 
 ## Sync client dependencies
 # Postgres sync client

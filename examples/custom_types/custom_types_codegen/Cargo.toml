@@ -24,10 +24,10 @@ fallible-iterator = "0.2.0"
 
 ## Types dependencies
 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
-chrono = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true, features = ["serde"] }
 time = { workspace = true, optional = true }
 # JSON or JSONB
-serde = { version = "1.0.217", features = ["derive"] }
+serde = { version = "1.0.218", features = ["derive"] }
 
 ## Async client dependencies
 # Postgres async client
