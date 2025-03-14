@@ -171,7 +171,6 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
     cargo.line("\n[dependencies]");
     cargo.line("## Core dependencies");
     cargo.line("# Postgres types");
-
     cargo.dep(
         "postgres-types",
         DependencyTable::new("0.2.9").features(vec!["derive"]),
@@ -179,10 +178,6 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
 
     cargo.line("# Postgres interaction");
     cargo.dep("postgres-protocol", DependencyTable::new("0.6.8"));
-
-    cargo
-        .line("# Iterator utils required for working with `postgres_protocol::types::ArrayValues`");
-    cargo.dep("fallible-iterator", DependencyTable::new("0.2.0"));
 
     let mut client_features = Vec::new();
 
@@ -255,14 +250,11 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         client_features.push("with-serde_json-1".to_string());
     }
 
-    if config.sync {
-        cargo.line("\n## Sync client dependencies");
-        cargo.line("# Postgres sync client");
-        cargo.dep(
-            "postgres",
-            DependencyTable::new("0.19.10").features(client_features.clone()),
-        );
-    }
+    cargo.line("\n# Postgres");
+    cargo.dep(
+        "postgres",
+        DependencyTable::new("0.19.10").features(client_features.clone()),
+    );
 
     if config.r#async {
         cargo.line("\n## Async client dependencies");

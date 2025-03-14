@@ -166,8 +166,8 @@ name = "auto_build_codegen"
 version = "0.1.0"
 dependencies = [
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
+ "postgres",
  "postgres-protocol",
  "postgres-types",
  "tokio-postgres",
@@ -245,8 +245,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
+ "postgres",
  "postgres-protocol",
  "postgres-types",
  "time",
@@ -258,8 +258,8 @@ name = "basic_async_wasm_codegen"
 version = "0.1.0"
 dependencies = [
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
+ "postgres",
  "postgres-protocol",
  "postgres-types",
  "tokio-postgres",
@@ -276,7 +276,6 @@ dependencies = [
 name = "basic_sync_codegen"
 version = "0.1.0"
 dependencies = [
- "fallible-iterator",
  "postgres",
  "postgres-protocol",
  "postgres-types",
@@ -539,7 +538,6 @@ dependencies = [
  "chrono",
  "deadpool-postgres",
  "eui48",
- "fallible-iterator",
  "futures",
  "postgres",
  "postgres-protocol",
@@ -726,8 +724,8 @@ dependencies = [
  "chrono",
  "ctypes",
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
+ "postgres",
  "postgres-protocol",
  "postgres-types",
  "postgres_range",
@@ -1125,7 +1123,6 @@ name = "generated"
 version = "0.1.0"
 dependencies = [
  "deadpool-postgres",
- "fallible-iterator",
  "futures",
  "postgres",
  "postgres-protocol",

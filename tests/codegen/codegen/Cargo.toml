@@ -19,8 +19,6 @@ time = ["dep:time"]
 postgres-types = { version = "0.2.9", features = ["derive"] }
 # Postgres interaction
 postgres-protocol = "0.6.8"
-# Iterator utils required for working with `postgres_protocol::types::ArrayValues`
-fallible-iterator = "0.2.0"
 
 ## Types dependencies
 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
@@ -36,8 +34,7 @@ rust_decimal = { version = "1.36.0", features = ["db-postgres"] }
 serde_json = { version = "1.0.140", features = ["raw_value"] }
 serde = { version = "1.0.218", features = ["derive"] }
 
-## Sync client dependencies
-# Postgres sync client
+# Postgres async client
 postgres = { version = "0.19.10", features = ["with-chrono-0_4", "with-time-0_3", "with-uuid-1", "with-eui48-1", "with-serde_json-1"] }
 
 ## Async client dependencies
