@@ -20,7 +20,7 @@ postgres-types = { version = "0.2.9", features = ["derive"] }
 # Postgres interaction
 postgres-protocol = "0.6.8"
 
-# Postgres async client
+# Postgres
 postgres = { version = "0.19.10", features = [] }
 
 ## Async client dependencies

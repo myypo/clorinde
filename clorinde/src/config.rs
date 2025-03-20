@@ -64,6 +64,7 @@ impl Default for Config {
                 crate_info: HashMap::new(),
                 mapping: HashMap::new(),
                 derive_traits: vec![],
+                type_traits_mapping: HashMap::new(),
             },
             package: Package::default(),
             static_files: vec![],
@@ -102,11 +103,14 @@ pub struct Types {
     /// Crates to add as a dependency for custom types
     #[serde(rename = "crates")]
     pub crate_info: HashMap<String, CrateDependency>,
-    /// Mapping for custom types
+    /// Mapping for postgres to rust types
     pub mapping: HashMap<String, TypeMapping>,
-    /// Derive traits added to all generated row structs
+    /// Derive traits added to all generated row structs and custom types
     #[serde(rename = "derive-traits")]
     pub derive_traits: Vec<String>,
+    /// Mapping for custom postgres types (eg. domains, enums, etc) to derive traits
+    #[serde(rename = "type-traits-mapping")]
+    pub type_traits_mapping: HashMap<String, Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -94,9 +94,7 @@ impl<'a> postgres_types::FromSql<'a> for SpongeBobCharacter {
         }
     }
 }
-#[derive(
-    serde::Serialize, Debug, postgres_types::FromSql, Clone, PartialEq, Hash, serde::Deserialize,
-)]
+#[derive(serde::Serialize, Debug, postgres_types::FromSql, Clone, PartialEq, Hash)]
 #[postgres(name = "voiceactor")]
 pub struct Voiceactor {
     #[postgres(name = "name")]

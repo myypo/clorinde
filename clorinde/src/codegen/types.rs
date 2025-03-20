@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indexmap::IndexMap;
 use quote::{ToTokens, format_ident, quote};
 
@@ -39,6 +41,7 @@ pub(crate) fn gen_type_modules(
                         schema,
                         ty,
                         &config.types.derive_traits,
+                        &config.types.type_traits_mapping,
                         &ctx,
                     ))
                 }
@@ -52,6 +55,7 @@ pub(crate) fn gen_type_modules(
                         schema,
                         ty,
                         &config.types.derive_traits,
+                        &config.types.type_traits_mapping,
                         &ctx,
                     ))
                 }
@@ -75,6 +79,7 @@ fn gen_custom_type(
     schema: &str,
     prepared: &PreparedType,
     derive_traits: &[String],
+    derive_traits_mapping: &HashMap<String, Vec<String>>,
     ctx: &GenCtx,
 ) -> proc_macro2::TokenStream {
     let PreparedType {
@@ -98,9 +103,20 @@ fn gen_custom_type(
         quote!()
     };
 
-    let trait_attrs = traits
+    let all_traits: Vec<&String> = traits
         .iter()
         .chain(derive_traits.iter())
+        .chain(
+            derive_traits_mapping
+                .get(name)
+                .map(|v| v.as_slice())
+                .unwrap_or(&[])
+                .iter(),
+        )
+        .collect();
+
+    let trait_attrs = all_traits
+        .into_iter()
         .map(|t| syn::parse_str::<proc_macro2::TokenStream>(t).unwrap_or_else(|_| quote!()));
 
     match content {

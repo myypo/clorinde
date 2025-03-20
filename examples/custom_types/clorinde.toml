@@ -5,12 +5,15 @@ use-workspace-deps = "../../Cargo.toml"
 [package]
 name = "custom_types_codegen"
 
-[types]
-derive-traits = ["Hash", "serde::Deserialize"]
-
 [types.crates]
 ctypes = { path = "../ctypes" }
 postgres_range = { version = "0.11.1", features = ["with-chrono-0_4"] }
+
+[types]
+derive-traits = ["Hash"]
+
+[types.type-traits-mapping]
+sponge_bob_character = ["serde::Deserialize"]
 
 [types.mapping]
 "pg_catalog.date" = "ctypes::date::Date"
