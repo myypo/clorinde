@@ -81,6 +81,30 @@ derive-traits = ["Default", "serde::Deserialize"]
 
 This will add the `Default` and `serde::Deserialize` traits to **all** structs. If you only want them added to specific structs, see this section in ["Type annotations"](./writing_queries/type_annotations.html#derive-traits).
 
+### Custom PostgreSQL type derive traits
+For more granular control in addition to traits in type annotations, you can specify traits that should only be derived for particular [custom PostgreSQL types](./introduction/types.html#custom-postgresql-types):
+
+```toml
+[types]
+# Applied to all generated structs and postgres types
+derive-traits = ["Default"]
+
+[types.derive-traits-mapping]
+# Applied to specfic custom postgres types (eg. enums, domains, composites)
+fontaine_region = ["serde::Deserialize"]
+```
+
+This configuration will add the `Clone` trait to all generated types (and structs), but will only add `serde::Deserialize` to the `fontaine_region` enum.
+
+~~~admonish note
+PostgreSQL identifiers (including type names) are case-insensitive unless quoted during creation.
+This means that a type created as `CREATE TYPE Fontaine_Region` will be stored as `fontaine_region`
+in the PostgreSQL system catalogs. When referencing custom PostgreSQL types in the `derive-traits-mapping`,
+you should use the lowercase form unless the type was explicitly created with quotes.
+~~~
+
+You can combine global and type-specific derive traits - the traits will be merged for the specified custom PostgreSQL types.
+
 ## Static files
 The `static` field allows you to copy or link files into your generated crate directory. This is useful for including files like licenses, build configurations, or other assets that should persist across code generation.
 
