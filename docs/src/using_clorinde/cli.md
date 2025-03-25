@@ -18,8 +18,12 @@ If you want to manage the database yourself, use the `clorinde live` command to 
 ### `sync`
 By default, Clorinde will generate asynchronous code, but it can also generate synchronous code using the `--sync` flag.
 
-### `serialize`
+### `serialize` (DEPRECATED)
 If you need to serialize the rows returned by your queries, you can use the `--serialize` flag, which will derive `Serialize` on your row types.
+
+```admonish warning
+This flag is deprecated and may be removed in future versions. Please use ["Derive traits"](../configuration.html#derive-traits) to add the `Serialize` trait and ["Custom type mappings"](../configuration.html#custom-type-mappings) to add `serde` as a dependency.
+```
 
 ### `podman`
 You can use `podman` as a container manager by passing the `-p` or `--podman` flag.
