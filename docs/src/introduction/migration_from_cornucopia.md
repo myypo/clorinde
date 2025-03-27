@@ -71,13 +71,5 @@ clorinde = { path = "clorinde", default-features = false, features = ["time"] }
 ```
 
 ~~~admonish warning
-The `time` feature is purely for backwards compatibility with Cornucopia, it will not be supported in future versions of Clorinde. Please use ["Custom type mappings"](../configuration.html#custom-type-mappings) instead. These are example types you could use.
-
-```toml
-[types.mapping]
-"pg_catalog.timestamp" = "time::PrimitiveDateTime"
-"pg_catalog.timestamptz" = "time::OffsetDateTime"
-"pg_catalog.date" = "time::Date"
-"pg_catalog.time" = "time::Time"
-```
+The `time` feature is purely for backwards compatibility with Cornucopia, it will be removed in a future version of Clorinde.
 ~~~

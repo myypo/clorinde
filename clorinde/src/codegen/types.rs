@@ -16,7 +16,7 @@ pub(crate) fn gen_type_modules(
     config: &Config,
 ) -> proc_macro2::TokenStream {
     let mut tokens = quote! {
-        #[cfg(feature = "chrono")]
+        #[cfg(all(feature = "chrono", not(feature = "time")))]
         pub mod time {
             pub type Timestamp = chrono::NaiveDateTime;
             pub type TimestampTz = chrono::DateTime<chrono::FixedOffset>;
