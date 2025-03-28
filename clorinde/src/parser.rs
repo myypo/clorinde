@@ -219,64 +219,6 @@ pub(crate) struct Query {
 }
 
 impl Query {
-    /// Escape sql string and pattern that are not bind
-    fn sql_escaping<'src>() -> impl Parser<'src, &'src str, (), extra::Err<Simple<'src, char>>> {
-        // ::bind
-        let cast = just("::").ignored();
-
-        // ":bind"
-        let constant = none_of('"')
-            .repeated()
-            .delimited_by(just('"'), just('"'))
-            .ignored();
-
-        // ':bind'
-        let string = none_of("'")
-            .repeated()
-            .delimited_by(just("'"), just("'"))
-            .ignored();
-
-        // E'\':bind\''
-        let c_style_string = just("\\'")
-            .or(just("''"))
-            .ignored()
-            .or(none_of("'").ignored())
-            .repeated()
-            .delimited_by(just("e'").or(just("E'")), just("'"))
-            .ignored();
-
-        // $:bind$:bind$:bind$
-        let dollar_tag = just("$").then(none_of("$").repeated()).then(just("$"));
-        let dollar_quoted = none_of("$")
-            .repeated()
-            .delimited_by(dollar_tag, dollar_tag)
-            .ignored();
-
-        c_style_string
-            .or(cast)
-            .or(string)
-            .or(constant)
-            .or(dollar_quoted)
-            // Non c_style_string e
-            .or(one_of("eE").then(none_of("'").rewind()).ignored())
-            // Non binding sql
-            .or(none_of("\"':$eE").ignored())
-            .repeated()
-            .at_least(1)
-            .ignored()
-    }
-
-    /// Parse all bind from an SQL query
-    fn parse_bind<'src>()
-    -> impl Parser<'src, &'src str, Vec<Span<String>>, extra::Err<Simple<'src, char>>> {
-        just(':')
-            .ignore_then(plain_ident())
-            .separated_by(Self::sql_escaping())
-            .allow_leading()
-            .allow_trailing()
-            .collect()
-    }
-
     /// Remove all comments from a query
     fn clean_sql_comments(sql: &str) -> String {
         let mut result = String::new();
@@ -329,6 +271,189 @@ impl Query {
         result
     }
 
+    /// Extract bind parameters from SQL - context aware, more robust than using combinators
+    fn extract_bind_params(sql: &str) -> Vec<Span<String>> {
+        let mut params = Vec::new();
+        let mut i = 0;
+        let chars: Vec<char> = sql.chars().collect();
+
+        struct ParseContext {
+            in_string: bool,
+            in_escape_string: bool,
+            in_identifier: bool,
+            in_comment: bool,
+            in_dollar_quote: bool,
+            dollar_tag: String,
+        }
+
+        let mut ctx = ParseContext {
+            in_string: false,
+            in_escape_string: false,
+            in_identifier: false,
+            in_comment: false,
+            in_dollar_quote: false,
+            dollar_tag: String::new(),
+        };
+
+        let in_context = |ctx: &ParseContext| -> bool {
+            ctx.in_string || ctx.in_identifier || ctx.in_comment || ctx.in_dollar_quote
+        };
+
+        while i < chars.len() {
+            let c = chars[i];
+
+            match c {
+                // Handle string literals
+                '\'' => {
+                    if !ctx.in_comment && !ctx.in_dollar_quote {
+                        if ctx.in_string {
+                            // Handle escaped quotes
+                            if i + 1 < chars.len() && chars[i + 1] == '\'' {
+                                i += 1; // Skip the escaped quote
+                            } else {
+                                ctx.in_string = false;
+                                ctx.in_escape_string = false;
+                            }
+                        } else {
+                            ctx.in_string = true;
+                        }
+                    }
+                }
+
+                // Handle escape strings (E'...' or e'...')
+                'e' | 'E' => {
+                    if !in_context(&ctx) && i + 1 < chars.len() && chars[i + 1] == '\'' {
+                        i += 1; // Skip the quote
+                        ctx.in_string = true;
+                        ctx.in_escape_string = true;
+                    }
+                }
+
+                // Handle backslash escapes in escape strings
+                '\\' => {
+                    if ctx.in_escape_string && i + 1 < chars.len() {
+                        i += 1; // Skip the escaped character
+                    }
+                }
+
+                // Handle quoted identifiers
+                '"' => {
+                    if !ctx.in_string && !ctx.in_comment && !ctx.in_dollar_quote {
+                        if ctx.in_identifier {
+                            // Handle escaped quotes
+                            if i + 1 < chars.len() && chars[i + 1] == '"' {
+                                i += 1; // Skip the escaped quote
+                            } else {
+                                ctx.in_identifier = false;
+                            }
+                        } else {
+                            ctx.in_identifier = true;
+                        }
+                    }
+                }
+
+                // Handle line comments
+                '-' => {
+                    if !in_context(&ctx) && i + 1 < chars.len() && chars[i + 1] == '-' {
+                        i += 1; // Skip the second dash
+                        ctx.in_comment = true;
+                    }
+                }
+
+                // End of line comment
+                '\n' => {
+                    if ctx.in_comment {
+                        ctx.in_comment = false;
+                    }
+                }
+
+                // Handle dollar-quoted strings
+                '$' => {
+                    if !in_context(&ctx) {
+                        // Start of dollar quote
+                        let tag_start = i + 1;
+                        let mut tag_end = tag_start;
+
+                        // Find end of tag
+                        while tag_end < chars.len()
+                            && (chars[tag_end].is_alphanumeric() || chars[tag_end] == '_')
+                        {
+                            tag_end += 1;
+                        }
+
+                        // Check for closing $
+                        if tag_end < chars.len() && chars[tag_end] == '$' {
+                            ctx.dollar_tag = sql[tag_start..tag_end].to_string();
+                            ctx.in_dollar_quote = true;
+                            i = tag_end; // Position at the closing $
+                        }
+                    } else if ctx.in_dollar_quote {
+                        // Potential end of dollar quote
+                        let tag_length = ctx.dollar_tag.len();
+
+                        if i + 1 + tag_length < chars.len() {
+                            let potential_end = &sql[i + 1..i + 1 + tag_length];
+
+                            if potential_end == ctx.dollar_tag
+                                && i + 1 + tag_length < chars.len()
+                                && chars[i + 1 + tag_length] == '$'
+                            {
+                                // Found matching end tag
+                                ctx.in_dollar_quote = false;
+                                i += tag_length + 1; // Skip to the end of the closing tag
+                                ctx.dollar_tag.clear();
+                            }
+                        }
+                    }
+                }
+
+                // Handle bind parameters
+                ':' => {
+                    if !in_context(&ctx) {
+                        // Skip type cast (::)
+                        if i + 1 < chars.len() && chars[i + 1] == ':' {
+                            i += 1;
+                        } else {
+                            // Extract parameter name
+                            let param_start = i + 1;
+                            let mut param_end = param_start;
+
+                            while param_end < chars.len()
+                                && (chars[param_end].is_alphanumeric() || chars[param_end] == '_')
+                            {
+                                param_end += 1;
+                            }
+
+                            if param_end > param_start {
+                                let param = sql[param_start..param_end].to_string();
+                                params.push(Span {
+                                    value: param,
+                                    span: (param_start..param_end).into(),
+                                });
+                                i = param_end - 1; // Position at the last character of the parameter
+                            }
+                        }
+                    }
+                }
+
+                _ => {}
+            }
+
+            i += 1;
+        }
+
+        params
+    }
+
+    /// Remove duplicates from bind parameters while preserving order of first occurrence
+    fn dedup_bind_params(params: Vec<Span<String>>) -> Vec<Span<String>> {
+        let mut seen = std::collections::HashSet::new();
+        params
+            .into_iter()
+            .filter(|param| seen.insert(param.value.clone()))
+            .collect()
+    }
+
     /// Parse sql query, normalizing named parameters
     fn parse_sql_query<'src>() -> impl Parser<
         'src,
@@ -356,22 +481,8 @@ impl Query {
                     .collect::<Vec<_>>()
                     .join("\n");
 
-                // In a real implementation, we would parse the SQL here
-                // For this test example, we'll simulate a parse result
-                let bind_params = Self::parse_bind()
-                    .parse(&sql_str)
-                    .into_output()
-                    .unwrap_or_default();
-
-                // Remove duplicates
-                let dedup_params: Vec<_> = bind_params
-                    .iter()
-                    .enumerate()
-                    .rev()
-                    .filter(|(i, u)| !bind_params[..*i].contains(u))
-                    .map(|(_, u)| u.clone())
-                    .rev()
-                    .collect();
+                let bind_params = Self::extract_bind_params(&sql_str);
+                let dedup_params = Self::dedup_bind_params(bind_params.clone());
 
                 for bind_param in bind_params.iter().rev() {
                     let index = dedup_params.iter().position(|bp| bp == bind_param).unwrap();
