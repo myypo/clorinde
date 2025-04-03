@@ -45,6 +45,7 @@ struct CargoWriter {
     buf: String,
     use_workspace_deps: bool,
     workspace_deps: HashSet<String>,
+    custom_deps: HashSet<String>,
 }
 
 impl CargoWriter {
@@ -83,10 +84,13 @@ impl CargoWriter {
             UseWorkspaceDeps::Path(path) => CargoWriter::get_workspace_deps(path),
         };
 
+        let custom_deps = config.types.crate_info.keys().cloned().collect();
+
         Self {
             buf: String::new(),
             use_workspace_deps,
             workspace_deps,
+            custom_deps,
         }
     }
 
@@ -94,7 +98,15 @@ impl CargoWriter {
         writeln!(self.buf, "{}", line).unwrap();
     }
 
-    fn dep(&mut self, name: &str, mut dep: DependencyTable) {
+    fn dep(&mut self, name: &str, dep: DependencyTable) {
+        if self.custom_deps.contains(name) {
+            return;
+        }
+
+        self.add_dep(name, dep);
+    }
+
+    fn add_dep(&mut self, name: &str, mut dep: DependencyTable) {
         // add `workspace = true` when `use-workspace-deps` option is enabled
         // and dependency appears in user's Cargo.toml `[workspace.dependencies]`
         if self.use_workspace_deps && self.workspace_deps.contains(name) {
@@ -286,7 +298,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
                     cargo.line(&format!("{} = \"{}\"", name, version));
                 }
                 CrateDependency::Detailed(dependency) => {
-                    cargo.dep(name, dependency.to_owned());
+                    cargo.add_dep(name, dependency.to_owned());
                 }
             }
         }

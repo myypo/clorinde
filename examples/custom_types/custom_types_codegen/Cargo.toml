@@ -32,7 +32,6 @@ postgres = { version = "0.19.10", features = ["with-chrono-0_4", "with-time-0_3"
 
 ## Async client dependencies
 # Postgres async client
-tokio-postgres = { version = "0.7.13", features = ["with-chrono-0_4", "with-time-0_3", "with-serde_json-1"] }
 # Async utils
 futures = "0.3.31"
 
@@ -43,3 +42,4 @@ deadpool-postgres = { version = "0.14.1", optional = true }
 ## Custom type dependencies
 ctypes = { path = "../ctypes" }
 postgres_range = { version = "0.11.1", features = ["with-chrono-0_4"] }
+tokio-postgres = { version = "0.7.13", features = ["with-chrono-0_4", "with-serde_json-1"] }
