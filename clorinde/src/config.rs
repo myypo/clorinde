@@ -39,10 +39,16 @@ pub struct Config {
 }
 
 impl Config {
+    /// Create config from file
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ConfigError> {
         let contents = fs::read_to_string(path)?;
         let config = toml::from_str(&contents)?;
         Ok(config)
+    }
+
+    /// Create a new builder with default values
+    pub fn builder() -> ConfigBuilder {
+        ConfigBuilder::default()
     }
 
     pub(crate) fn get_type_mapping(&self, ty: &Type) -> Option<&TypeMapping> {
@@ -291,6 +297,144 @@ impl Default for Package {
             autobenches: None,
             rust_version: None,
         }
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct ConfigBuilder {
+    config: Config,
+}
+
+impl ConfigBuilder {
+    /// Use `podman` instead of `docker`
+    pub fn podman(mut self, podman: bool) -> Self {
+        self.config.podman = podman;
+        self
+    }
+
+    /// Set directory containing the queries
+    pub fn queries(mut self, queries: impl Into<PathBuf>) -> Self {
+        self.config.queries = queries.into();
+        self
+    }
+
+    /// Set just the package name, keeping other package defaults
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.config.package.name = name.into();
+        self
+    }
+
+    /// Set destination folder for generated modules
+    pub fn destination(mut self, destination: impl Into<PathBuf>) -> Self {
+        self.config.destination = destination.into();
+        self
+    }
+
+    /// Generate synchronous rust code
+    pub fn sync(mut self, sync: bool) -> Self {
+        self.config.sync = sync;
+        self
+    }
+
+    /// Generate asynchronous rust code
+    pub fn r#async(mut self, r#async: bool) -> Self {
+        self.config.r#async = r#async;
+        self
+    }
+
+    /// Derive serde's `Serialize` trait for generated types
+    pub fn serialize(mut self, serialize: bool) -> Self {
+        self.config.serialize = serialize;
+        self
+    }
+
+    /// Set custom type settings
+    pub fn types(mut self, types: Types) -> Self {
+        self.config.types = types;
+        self
+    }
+
+    /// Set package metadata for the generated `Cargo.toml`
+    pub fn package(mut self, package: Package) -> Self {
+        self.config.package = package;
+        self
+    }
+
+    /// Add a static file to copy
+    pub fn add_static_file(mut self, file: StaticFile) -> Self {
+        self.config.static_files.push(file);
+        self
+    }
+
+    /// Set static files to copy
+    pub fn static_files(mut self, files: Vec<StaticFile>) -> Self {
+        self.config.static_files = files;
+        self
+    }
+
+    /// Configure workspace dependencies
+    pub fn use_workspace_deps(mut self, use_workspace_deps: UseWorkspaceDeps) -> Self {
+        self.config.use_workspace_deps = use_workspace_deps;
+        self
+    }
+
+    /// Add a type mapping
+    pub fn add_type_mapping(mut self, key: impl Into<String>, mapping: TypeMapping) -> Self {
+        self.config.types.mapping.insert(key.into(), mapping);
+        self
+    }
+
+    /// Add a crate dependency
+    pub fn add_crate_dependency(
+        mut self,
+        name: impl Into<String>,
+        dependency: CrateDependency,
+    ) -> Self {
+        self.config.types.crate_info.insert(name.into(), dependency);
+        self
+    }
+
+    /// Add a simple crate dependency
+    pub fn add_simple_crate_dependency(
+        mut self,
+        name: impl Into<String>,
+        version: impl Into<String>,
+    ) -> Self {
+        self.config
+            .types
+            .crate_info
+            .insert(name.into(), CrateDependency::Simple(version.into()));
+        self
+    }
+
+    /// Add a derive trait for all generated structs/types
+    pub fn add_derive_trait(mut self, trait_name: impl Into<String>) -> Self {
+        self.config.types.derive_traits.push(trait_name.into());
+        self
+    }
+
+    /// Set derive traits for all generated structs/types
+    pub fn derive_traits(mut self, traits: Vec<impl Into<String>>) -> Self {
+        self.config.types.derive_traits = traits.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Add a type-specific trait mapping
+    pub fn add_type_trait_mapping(
+        mut self,
+        type_name: impl Into<String>,
+        traits: Vec<impl Into<String>>,
+    ) -> Self {
+        self.config.types.type_traits_mapping.insert(
+            type_name.into(),
+            traits.into_iter().map(Into::into).collect(),
+        );
+        self
+    }
+
+    /// Build the Config
+    pub fn build(self) -> Config {
+        self.config
     }
 }
 
