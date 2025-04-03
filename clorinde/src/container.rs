@@ -2,8 +2,29 @@ use std::process::{Command, Stdio};
 
 use self::error::Error;
 
+/// Checks if a command-line tool is installed and available in PATH
+fn is_installed(tool: &str) -> bool {
+    let status = std::process::Command::new(tool)
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status();
+
+    status.is_ok() && status.unwrap().success()
+}
+
 /// Starts Clorinde's database container and wait until it reports healthy.
 pub fn setup(podman: bool) -> Result<(), Error> {
+    let command = if podman { "podman" } else { "docker" };
+    if !is_installed(command) {
+        return Err(Error {
+            msg: format!("`{command}` is not installed or not found in PATH."),
+            help: Some(format!(
+                "`schema` requires `{command}` to be installed and added to your PATH."
+            )),
+        });
+    }
+
     spawn_container(podman)?;
     healthcheck(podman, 120, 50)?;
     Ok(())
@@ -112,7 +133,7 @@ pub(crate) mod error {
     #[derive(Debug, ThisError, Diagnostic)]
     #[error("{msg}")]
     pub struct Error {
-        msg: String,
+        pub(crate) msg: String,
         #[help]
         pub help: Option<String>,
     }
