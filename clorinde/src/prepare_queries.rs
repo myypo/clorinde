@@ -70,6 +70,7 @@ pub struct PreparedField {
     pub(crate) ty: Rc<ClorindeType>,
     pub(crate) is_nullable: bool,
     pub(crate) is_inner_nullable: bool, // Vec only
+    pub(crate) nullable_inner_ident: Option<Ident>,
 }
 
 impl PreparedField {
@@ -83,6 +84,7 @@ impl PreparedField {
             ty,
             is_nullable: nullity.is_some_and(|it| it.nullable),
             is_inner_nullable: nullity.is_some_and(|it| it.inner_nullable),
+            nullable_inner_ident: nullity.and_then(|it| it.inner_col_ident.clone().map(|it|  Ident::new(it.to_string()))),
         }
     }
 }

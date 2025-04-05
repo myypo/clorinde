@@ -126,6 +126,7 @@ pub struct NullableIdent {
     pub name: Span<String>,
     pub nullable: bool,
     pub inner_nullable: bool,
+    pub inner_col_ident: Option<Span<String>>,  
 }
 
 fn parse_nullable_ident<'src>()
@@ -134,10 +135,12 @@ fn parse_nullable_ident<'src>()
         .ignore_then(ident())
         .then(just('?').or_not())
         .then(just("[?]").or_not())
-        .map(|((name, null), inner_null)| NullableIdent {
+        .then(just(".").ignore_then(ident()).then_ignore(just("?")).or_not())
+        .map(|(((name, null), arr_null), inner_col_ident)| NullableIdent {
             name,
             nullable: null.is_some(),
-            inner_nullable: inner_null.is_some(),
+            inner_nullable: arr_null.is_some(),
+            inner_col_ident,
         })
         .then_ignore(space());
 

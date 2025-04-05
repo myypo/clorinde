@@ -154,7 +154,7 @@ impl ClorindeType {
     }
 
     /// Corresponding owned type
-    pub(crate) fn own_ty(&self, is_inner_nullable: bool, ctx: &GenCtx) -> String {
+    pub(crate) fn own_ty(&self, is_inner_nullable: bool,  ctx: &GenCtx) -> String {
         match self {
             ClorindeType::Simple { rust_name, .. } => (*rust_name).to_string(),
             ClorindeType::Array { inner, .. } => {

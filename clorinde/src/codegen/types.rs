@@ -151,7 +151,14 @@ fn gen_custom_type(
 
             let fields_ty: Vec<_> = fields
                 .iter()
-                .map(|p| syn::parse_str::<syn::Type>(&p.own_struct(ctx)).unwrap())
+                .map(|p| {
+                    syn::parse_str::<syn::Type>({
+                        let mut p = p.clone();
+                        p.is_nullable = true;
+                        &p.own_struct(ctx)
+                    })
+                    .unwrap()
+                })
                 .collect();
 
             let struct_def = quote! {
