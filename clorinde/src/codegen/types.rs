@@ -7,6 +7,7 @@ use crate::{
     codegen::ModCtx,
     config::Config,
     prepare_queries::{Ident, PreparedContent, PreparedField, PreparedType},
+    type_registrar::ClorindeType,
 };
 
 use super::GenCtx;
@@ -71,6 +72,10 @@ pub(crate) fn gen_type_modules(
     }
 
     tokens
+}
+
+pub fn is_nullable_field_hack(it: &ClorindeType) -> bool {
+    it.pg_ty().name().starts_with("_") || it.pg_ty().name().contains("._")
 }
 
 /// Generates type definitions for custom user types. This includes domains, composites and enums.
@@ -139,6 +144,15 @@ fn gen_custom_type(
             }
         }
         PreparedContent::Composite(fields) => {
+            let fields: Vec<_> = fields
+                .into_iter()
+                .map(|p| {
+                    let mut p = p.clone();
+                    p.is_nullable = is_nullable_field_hack(&p.ty);
+                    p
+                })
+                .collect();
+
             let fields_original_name: Vec<_> = fields
                 .iter()
                 .map(|p| syn::LitStr::new(&p.ident.db, proc_macro2::Span::call_site()))
@@ -194,7 +208,7 @@ fn gen_custom_type(
             };
 
             if *is_copy {
-                let tosql_impl = struct_tosql(struct_name, fields, name, false, *is_params, ctx);
+                let tosql_impl = struct_tosql(struct_name, &fields, name, false, *is_params, ctx);
                 quote! {
                     #struct_def
                     #tosql_impl
@@ -202,7 +216,14 @@ fn gen_custom_type(
             } else {
                 let fields_brw: Vec<_> = fields
                     .iter()
-                    .map(|p| syn::parse_str::<syn::Type>(&p.brw_ty(true, ctx)).unwrap())
+                    .map(|p| {
+                        syn::parse_str::<syn::Type>({
+                            let mut p = p.clone();
+                            p.is_nullable = is_nullable_field_hack(&p.ty);
+                            &p.brw_ty(true, ctx)
+                        })
+                        .unwrap()
+                    })
                     .collect();
 
                 let field_assignments = fields.iter().map(|p| p.owning_assign());
@@ -252,7 +273,7 @@ fn gen_custom_type(
                     }
                 };
 
-                let fromsql_impl = composite_fromsql(struct_name, fields, name, schema);
+                let fromsql_impl = composite_fromsql(struct_name, &fields, name, schema);
 
                 let params_struct = if !is_params {
                     let fields_ty: Vec<_> = fields
@@ -302,7 +323,7 @@ fn gen_custom_type(
                     quote!()
                 };
 
-                let tosql_impl = struct_tosql(struct_name, fields, name, true, *is_params, ctx);
+                let tosql_impl = struct_tosql(struct_name, &fields, name, true, *is_params, ctx);
 
                 quote! {
                     #struct_def
