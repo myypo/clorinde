@@ -2,7 +2,7 @@ use quote::{format_ident, quote};
 
 use super::{GenCtx, idx_char, vfs::Vfs};
 use crate::{
-    codegen::ModCtx,
+    codegen::{types::is_nullable_field_hack, ModCtx},
     config::Config,
     prepare_queries::{Preparation, PreparedItem, PreparedModule, PreparedQuery},
 };
@@ -77,7 +77,12 @@ fn gen_row_structs(
 
     let fields_ty: Vec<_> = fields
         .iter()
-        .map(|p| syn::parse_str::<syn::Type>(&p.own_struct(ctx)).unwrap())
+        .map(|p| syn::parse_str::<syn::Type>( {
+                        let mut p = p.clone();
+                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        &p.own_struct(ctx)
+                }
+        ).unwrap())
         .collect();
 
     let copy_attr = if *is_copy { quote!(, Copy) } else { quote!() };
@@ -103,9 +108,16 @@ fn gen_row_structs(
     let borrowed_impl = if !is_copy {
         let borrowed_name = format_ident!("{}Borrowed", name.to_string());
 
+        let fields: Vec<_> = fields.into_iter().map(|p|{
+                let mut p = p.clone();
+                p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                p
+        }).collect();
         let borrowed_fields_ty: Vec<_> = fields
             .iter()
-            .map(|p| syn::parse_str::<syn::Type>(&p.brw_ty(true, ctx)).unwrap())
+            .map(|p| syn::parse_str::<syn::Type>({
+                &p.brw_ty(true,ctx)
+            }).unwrap())
             .collect();
 
         let field_assignments = fields.iter().map(|f| f.owning_assign());
@@ -180,7 +192,11 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
         let path = format!("{}{}", row.path(ctx), borrowed_suffix);
         syn::parse_str::<syn::Type>(&path).unwrap()
     } else {
-        syn::parse_str::<syn::Type>(&fields[0].brw_ty(false, ctx)).unwrap()
+        syn::parse_str::<syn::Type>({
+                let mut p = fields[0].clone();
+                p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                &p.brw_ty(true,ctx)
+        }).unwrap()
     };
 
     quote! {
@@ -360,7 +376,11 @@ fn gen_query_fn(
             }
         } else {
             let field = &fields[0];
-            let field_type = syn::parse_str::<syn::Type>(&field.own_struct(ctx)).unwrap();
+            let field_type = syn::parse_str::<syn::Type>({
+                        let mut p = field.clone();
+                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        &p.own_struct(ctx)
+            }).unwrap();
             let owning_call = syn::parse_str::<syn::Expr>(&field.owning_call(Some("it"))).unwrap();
 
             quote! {
@@ -443,7 +463,11 @@ fn gen_query_fn(
                 let query_row_struct = if prepared_row.is_named {
                     syn::parse_str::<syn::Type>(&prepared_row.path(ctx)).unwrap()
                 } else {
-                    syn::parse_str::<syn::Type>(&prepared_row.fields[0].own_struct(ctx)).unwrap()
+                    syn::parse_str::<syn::Type>({
+                        let mut p = prepared_row.fields[0].clone();
+                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        &p.own_struct(ctx)
+                    }).unwrap()
                 };
 
                 let name = format_ident!(
