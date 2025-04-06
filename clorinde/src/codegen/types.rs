@@ -7,6 +7,7 @@ use crate::{
     codegen::ModCtx,
     config::Config,
     prepare_queries::{Ident, PreparedContent, PreparedField, PreparedType},
+    type_registrar::ClorindeType,
 };
 
 use super::GenCtx;
@@ -73,8 +74,8 @@ pub(crate) fn gen_type_modules(
     tokens
 }
 
-pub fn is_nullable_field_hack(it: Ident) -> bool {
-    it.rs.starts_with("_") || it.db.starts_with("_")
+pub fn is_nullable_field_hack(it: &ClorindeType) -> bool {
+    it.pg_ty().name().starts_with("_") || it.pg_ty().name().contains("._")
 }
 
 /// Generates type definitions for custom user types. This includes domains, composites and enums.
@@ -147,7 +148,7 @@ fn gen_custom_type(
                 .into_iter()
                 .map(|p| {
                     let mut p = p.clone();
-                    p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                    p.is_nullable = is_nullable_field_hack(&p.ty);
                     p
                 })
                 .collect();
@@ -190,7 +191,7 @@ fn gen_custom_type(
                     .map(|p| {
                         syn::parse_str::<syn::Type>({
                             let mut p = p.clone();
-                            p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                            p.is_nullable = is_nullable_field_hack(&p.ty);
                             &p.brw_ty(true, ctx)
                         })
                         .unwrap()

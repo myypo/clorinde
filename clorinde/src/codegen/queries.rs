@@ -79,7 +79,7 @@ fn gen_row_structs(
         .iter()
         .map(|p| syn::parse_str::<syn::Type>( {
                         let mut p = p.clone();
-                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        p.is_nullable = is_nullable_field_hack(&p.ty);
                         &p.own_struct(ctx)
                 }
         ).unwrap())
@@ -110,7 +110,7 @@ fn gen_row_structs(
 
         let fields: Vec<_> = fields.into_iter().map(|p|{
                 let mut p = p.clone();
-                p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                p.is_nullable = is_nullable_field_hack(&p.ty);
                 p
         }).collect();
         let borrowed_fields_ty: Vec<_> = fields
@@ -194,7 +194,7 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
     } else {
         syn::parse_str::<syn::Type>({
                 let mut p = fields[0].clone();
-                p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                p.is_nullable = is_nullable_field_hack(&p.ty);
                 &p.brw_ty(true,ctx)
         }).unwrap()
     };
@@ -378,7 +378,7 @@ fn gen_query_fn(
             let field = &fields[0];
             let field_type = syn::parse_str::<syn::Type>({
                         let mut p = field.clone();
-                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        p.is_nullable = is_nullable_field_hack(&p.ty);
                         &p.own_struct(ctx)
             }).unwrap();
             let owning_call = syn::parse_str::<syn::Expr>(&field.owning_call(Some("it"))).unwrap();
@@ -465,7 +465,7 @@ fn gen_query_fn(
                 } else {
                     syn::parse_str::<syn::Type>({
                         let mut p = prepared_row.fields[0].clone();
-                        p.is_nullable = is_nullable_field_hack(p.ident.clone());
+                        p.is_nullable = is_nullable_field_hack(&p.ty);
                         &p.own_struct(ctx)
                     }).unwrap()
                 };
