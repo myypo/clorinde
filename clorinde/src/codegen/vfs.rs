@@ -43,11 +43,7 @@ impl Vfs {
     pub fn add(&mut self, path: impl Into<PathBuf>, content: proc_macro2::TokenStream) {
         let warning = "// This file was generated with `clorinde`. Do not modify.\n\n";
 
-        let syntax_tree = syn::parse2(content.clone()).unwrap_or_else(|err| {
-            eprintln!("Failed to parse generated code: {}", err);
-            eprintln!("Generated content: {}", content);
-            panic!("Invalid syntax in generated code")
-        });
+        let syntax_tree = syn::parse2(content).expect("Failed to parse generated code");
         let formatted = prettyplease::unparse(&syntax_tree);
 
         let file_content = format!("{}{}", warning, formatted);
