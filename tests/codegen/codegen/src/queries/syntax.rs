@@ -164,7 +164,8 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> crate::types::CloneCompositeBorrowed,
+        extractor:
+            fn(&postgres::Row) -> Result<crate::types::CloneCompositeBorrowed, postgres::Error>,
         mapper: fn(crate::types::CloneCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> CloneCompositeQuery<'c, 'a, 's, C, T, N>
@@ -186,7 +187,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -196,7 +197,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -207,7 +212,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -215,7 +225,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> Option<i32>,
+        extractor: fn(&postgres::Row) -> Result<Option<i32>, postgres::Error>,
         mapper: fn(Option<i32>) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> Optioni32Query<'c, 'a, 's, C, T, N>
@@ -234,7 +244,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -244,7 +254,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -255,7 +269,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -263,7 +282,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::Row,
+        extractor: fn(&postgres::Row) -> Result<super::Row, postgres::Error>,
         mapper: fn(super::Row) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> RowQuery<'c, 'a, 's, C, T, N>
@@ -282,7 +301,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -292,7 +311,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -303,7 +326,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -311,7 +339,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::RowSpace,
+        extractor: fn(&postgres::Row) -> Result<super::RowSpace, postgres::Error>,
         mapper: fn(super::RowSpace) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> RowSpaceQuery<'c, 'a, 's, C, T, N>
@@ -333,7 +361,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -343,7 +371,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -354,7 +386,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -362,7 +399,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::TypeofBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::TypeofBorrowed, postgres::Error>,
         mapper: fn(super::TypeofBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> TypeofQuery<'c, 'a, 's, C, T, N>
@@ -384,7 +421,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -394,7 +431,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -405,7 +446,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -413,7 +459,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::SelectCommentBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::SelectCommentBorrowed, postgres::Error>,
         mapper: fn(super::SelectCommentBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SelectCommentQuery<'c, 'a, 's, C, T, N>
@@ -435,7 +481,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -445,7 +491,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -456,7 +506,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -464,7 +519,8 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::SelectInlineCommentBorrowed,
+        extractor:
+            fn(&postgres::Row) -> Result<super::SelectInlineCommentBorrowed, postgres::Error>,
         mapper: fn(super::SelectInlineCommentBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SelectInlineCommentQuery<'c, 'a, 's, C, T, N>
@@ -486,7 +542,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -496,7 +552,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -507,7 +567,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -524,7 +589,7 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -542,7 +607,7 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -564,7 +629,7 @@ pub mod sync {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it,
             }
         }
@@ -604,7 +669,7 @@ pub mod sync {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it,
             }
         }
@@ -644,7 +709,11 @@ pub mod sync {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| super::Row { id: row.get(0) },
+                extractor: |row: &postgres::Row| -> Result<super::Row, postgres::Error> {
+                    Ok(super::Row {
+                        id: row.try_get(0)?,
+                    })
+                },
                 mapper: |it| super::Row::from(it),
             }
         }
@@ -684,7 +753,11 @@ pub mod sync {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| super::RowSpace { id: row.get(0) },
+                extractor: |row: &postgres::Row| -> Result<super::RowSpace, postgres::Error> {
+                    Ok(super::RowSpace {
+                        id: row.try_get(0)?,
+                    })
+                },
                 mapper: |it| super::RowSpace::from(it),
             }
         }
@@ -1070,10 +1143,12 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::TypeofBorrowed {
-                    trick_y: row.get(0),
-                    r#async: row.get(1),
-                    r#enum: row.get(2),
+                extractor: |row: &postgres::Row| -> Result<super::TypeofBorrowed, postgres::Error> {
+                    Ok(super::TypeofBorrowed {
+                        trick_y: row.try_get(0)?,
+                        r#async: row.try_get(1)?,
+                        r#enum: row.try_get(2)?,
+                    })
                 },
                 mapper: |it| super::Typeof::from(it),
             }
@@ -1095,11 +1170,14 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::SelectCommentBorrowed {
-                    trick_y: row.get(0),
-                    r#async: row.get(1),
-                    r#enum: row.get(2),
-                },
+                extractor:
+                    |row: &postgres::Row| -> Result<super::SelectCommentBorrowed, postgres::Error> {
+                        Ok(super::SelectCommentBorrowed {
+                            trick_y: row.try_get(0)?,
+                            r#async: row.try_get(1)?,
+                            r#enum: row.try_get(2)?,
+                        })
+                    },
                 mapper: |it| super::SelectComment::from(it),
             }
         }
@@ -1119,12 +1197,16 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::SelectInlineCommentBorrowed {
-                    c1: row.get(0),
-                    c2: row.get(1),
-                    c3: row.get(2),
-                    c4: row.get(3),
-                    c5: row.get(4),
+                extractor: |
+                    row: &postgres::Row,
+                | -> Result<super::SelectInlineCommentBorrowed, postgres::Error> {
+                    Ok(super::SelectInlineCommentBorrowed {
+                        c1: row.try_get(0)?,
+                        c2: row.try_get(1)?,
+                        c3: row.try_get(2)?,
+                        c4: row.try_get(3)?,
+                        c5: row.try_get(4)?,
+                    })
                 },
                 mapper: |it| super::SelectInlineComment::from(it),
             }
@@ -1138,7 +1220,10 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> crate::types::CloneCompositeBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        )
+            -> Result<crate::types::CloneCompositeBorrowed, tokio_postgres::Error>,
         mapper: fn(crate::types::CloneCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> CloneCompositeQuery<'c, 'a, 's, C, T, N>
@@ -1160,7 +1245,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1171,7 +1256,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1184,7 +1273,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1193,7 +1287,7 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> Option<i32>,
+        extractor: fn(&tokio_postgres::Row) -> Result<Option<i32>, tokio_postgres::Error>,
         mapper: fn(Option<i32>) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> Optioni32Query<'c, 'a, 's, C, T, N>
@@ -1212,7 +1306,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1223,7 +1317,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1236,7 +1334,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1245,7 +1348,7 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::Row,
+        extractor: fn(&tokio_postgres::Row) -> Result<super::Row, tokio_postgres::Error>,
         mapper: fn(super::Row) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> RowQuery<'c, 'a, 's, C, T, N>
@@ -1264,7 +1367,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1275,7 +1378,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1288,7 +1395,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1297,7 +1409,7 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::RowSpace,
+        extractor: fn(&tokio_postgres::Row) -> Result<super::RowSpace, tokio_postgres::Error>,
         mapper: fn(super::RowSpace) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> RowSpaceQuery<'c, 'a, 's, C, T, N>
@@ -1319,7 +1431,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1330,7 +1442,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1343,7 +1459,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1352,7 +1473,7 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::TypeofBorrowed,
+        extractor: fn(&tokio_postgres::Row) -> Result<super::TypeofBorrowed, tokio_postgres::Error>,
         mapper: fn(super::TypeofBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> TypeofQuery<'c, 'a, 's, C, T, N>
@@ -1374,7 +1495,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1385,7 +1506,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1398,7 +1523,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1407,7 +1537,8 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::SelectCommentBorrowed,
+        extractor:
+            fn(&tokio_postgres::Row) -> Result<super::SelectCommentBorrowed, tokio_postgres::Error>,
         mapper: fn(super::SelectCommentBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SelectCommentQuery<'c, 'a, 's, C, T, N>
@@ -1429,7 +1560,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1440,7 +1571,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1453,7 +1588,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1462,7 +1602,9 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::SelectInlineCommentBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        ) -> Result<super::SelectInlineCommentBorrowed, tokio_postgres::Error>,
         mapper: fn(super::SelectInlineCommentBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SelectInlineCommentQuery<'c, 'a, 's, C, T, N>
@@ -1484,7 +1626,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1495,7 +1637,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1508,7 +1654,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1526,7 +1677,7 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -1544,7 +1695,7 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -1566,7 +1717,7 @@ pub mod async_ {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it,
             }
         }
@@ -1606,7 +1757,7 @@ pub mod async_ {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it,
             }
         }
@@ -1646,7 +1797,12 @@ pub mod async_ {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| super::Row { id: row.get(0) },
+                extractor:
+                    |row: &tokio_postgres::Row| -> Result<super::Row, tokio_postgres::Error> {
+                        Ok(super::Row {
+                            id: row.try_get(0)?,
+                        })
+                    },
                 mapper: |it| super::Row::from(it),
             }
         }
@@ -1686,7 +1842,12 @@ pub mod async_ {
                 client,
                 params: [name, price],
                 stmt: &mut self.0,
-                extractor: |row| super::RowSpace { id: row.get(0) },
+                extractor:
+                    |row: &tokio_postgres::Row| -> Result<super::RowSpace, tokio_postgres::Error> {
+                        Ok(super::RowSpace {
+                            id: row.try_get(0)?,
+                        })
+                    },
                 mapper: |it| super::RowSpace::from(it),
             }
         }
@@ -2112,10 +2273,14 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::TypeofBorrowed {
-                    trick_y: row.get(0),
-                    r#async: row.get(1),
-                    r#enum: row.get(2),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::TypeofBorrowed, tokio_postgres::Error> {
+                    Ok(super::TypeofBorrowed {
+                        trick_y: row.try_get(0)?,
+                        r#async: row.try_get(1)?,
+                        r#enum: row.try_get(2)?,
+                    })
                 },
                 mapper: |it| super::Typeof::from(it),
             }
@@ -2137,10 +2302,14 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::SelectCommentBorrowed {
-                    trick_y: row.get(0),
-                    r#async: row.get(1),
-                    r#enum: row.get(2),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::SelectCommentBorrowed, tokio_postgres::Error> {
+                    Ok(super::SelectCommentBorrowed {
+                        trick_y: row.try_get(0)?,
+                        r#async: row.try_get(1)?,
+                        r#enum: row.try_get(2)?,
+                    })
                 },
                 mapper: |it| super::SelectComment::from(it),
             }
@@ -2161,12 +2330,17 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::SelectInlineCommentBorrowed {
-                    c1: row.get(0),
-                    c2: row.get(1),
-                    c3: row.get(2),
-                    c4: row.get(3),
-                    c5: row.get(4),
+                extractor: |row: &tokio_postgres::Row| -> Result<
+                    super::SelectInlineCommentBorrowed,
+                    tokio_postgres::Error,
+                > {
+                    Ok(super::SelectInlineCommentBorrowed {
+                        c1: row.try_get(0)?,
+                        c2: row.try_get(1)?,
+                        c3: row.try_get(2)?,
+                        c4: row.try_get(3)?,
+                        c5: row.try_get(4)?,
+                    })
                 },
                 mapper: |it| super::SelectInlineComment::from(it),
             }

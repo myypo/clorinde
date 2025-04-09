@@ -723,7 +723,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::EverythingBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::EverythingBorrowed, postgres::Error>,
         mapper: fn(super::EverythingBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingQuery<'c, 'a, 's, C, T, N>
@@ -745,7 +745,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -755,7 +755,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -766,7 +770,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -774,7 +783,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::EverythingNullBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::EverythingNullBorrowed, postgres::Error>,
         mapper: fn(super::EverythingNullBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingNullQuery<'c, 'a, 's, C, T, N>
@@ -796,7 +805,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -806,7 +815,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -817,7 +830,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -825,7 +843,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> &str,
+        extractor: fn(&postgres::Row) -> Result<&str, postgres::Error>,
         mapper: fn(&str) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> StringQuery<'c, 'a, 's, C, T, N>
@@ -844,7 +862,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -854,7 +872,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -865,7 +887,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -873,7 +900,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::EverythingArrayBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::EverythingArrayBorrowed, postgres::Error>,
         mapper: fn(super::EverythingArrayBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingArrayQuery<'c, 'a, 's, C, T, N>
@@ -895,7 +922,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -905,7 +932,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -916,7 +947,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -924,7 +960,8 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::EverythingArrayNullBorrowed,
+        extractor:
+            fn(&postgres::Row) -> Result<super::EverythingArrayNullBorrowed, postgres::Error>,
         mapper: fn(super::EverythingArrayNullBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingArrayNullQuery<'c, 'a, 's, C, T, N>
@@ -946,7 +983,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -956,7 +993,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -967,7 +1008,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -975,7 +1021,8 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> crate::types::NightmareCompositeBorrowed,
+        extractor:
+            fn(&postgres::Row) -> Result<crate::types::NightmareCompositeBorrowed, postgres::Error>,
         mapper: fn(crate::types::NightmareCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> NightmareCompositeQuery<'c, 'a, 's, C, T, N>
@@ -997,7 +1044,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -1007,7 +1054,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -1018,7 +1069,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -1026,7 +1082,10 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> crate::types::schema::NightmareCompositeBorrowed,
+        extractor: fn(
+            &postgres::Row,
+        )
+            -> Result<crate::types::schema::NightmareCompositeBorrowed, postgres::Error>,
         mapper: fn(crate::types::schema::NightmareCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SchemaNightmareCompositeQuery<'c, 'a, 's, C, T, N>
@@ -1048,7 +1107,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -1058,7 +1117,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -1069,7 +1132,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -1086,44 +1154,47 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    smallserial_: row.get(5),
-                    serial2_: row.get(6),
-                    int_: row.get(7),
-                    int4_: row.get(8),
-                    serial_: row.get(9),
-                    serial4_: row.get(10),
-                    bingint_: row.get(11),
-                    int8_: row.get(12),
-                    bigserial_: row.get(13),
-                    serial8_: row.get(14),
-                    float4_: row.get(15),
-                    real_: row.get(16),
-                    float8_: row.get(17),
-                    double_precision_: row.get(18),
-                    text_: row.get(19),
-                    varchar_: row.get(20),
-                    citext_: row.get(21),
-                    ltree_: row.get(22),
-                    bytea_: row.get(23),
-                    timestamp_: row.get(24),
-                    timestamp_without_time_zone_: row.get(25),
-                    timestamptz_: row.get(26),
-                    timestamp_with_time_zone_: row.get(27),
-                    date_: row.get(28),
-                    time_: row.get(29),
-                    json_: row.get(30),
-                    jsonb_: row.get(31),
-                    uuid_: row.get(32),
-                    inet_: row.get(33),
-                    macaddr_: row.get(34),
-                    numeric_: row.get(35),
-                },
+                extractor:
+                    |row: &postgres::Row| -> Result<super::EverythingBorrowed, postgres::Error> {
+                        Ok(super::EverythingBorrowed {
+                            bool_: row.try_get(0)?,
+                            boolean_: row.try_get(1)?,
+                            char_: row.try_get(2)?,
+                            smallint_: row.try_get(3)?,
+                            int2_: row.try_get(4)?,
+                            smallserial_: row.try_get(5)?,
+                            serial2_: row.try_get(6)?,
+                            int_: row.try_get(7)?,
+                            int4_: row.try_get(8)?,
+                            serial_: row.try_get(9)?,
+                            serial4_: row.try_get(10)?,
+                            bingint_: row.try_get(11)?,
+                            int8_: row.try_get(12)?,
+                            bigserial_: row.try_get(13)?,
+                            serial8_: row.try_get(14)?,
+                            float4_: row.try_get(15)?,
+                            real_: row.try_get(16)?,
+                            float8_: row.try_get(17)?,
+                            double_precision_: row.try_get(18)?,
+                            text_: row.try_get(19)?,
+                            varchar_: row.try_get(20)?,
+                            citext_: row.try_get(21)?,
+                            ltree_: row.try_get(22)?,
+                            bytea_: row.try_get(23)?,
+                            timestamp_: row.try_get(24)?,
+                            timestamp_without_time_zone_: row.try_get(25)?,
+                            timestamptz_: row.try_get(26)?,
+                            timestamp_with_time_zone_: row.try_get(27)?,
+                            date_: row.try_get(28)?,
+                            time_: row.try_get(29)?,
+                            json_: row.try_get(30)?,
+                            jsonb_: row.try_get(31)?,
+                            uuid_: row.try_get(32)?,
+                            inet_: row.try_get(33)?,
+                            macaddr_: row.try_get(34)?,
+                            numeric_: row.try_get(35)?,
+                        })
+                    },
                 mapper: |it| super::Everything::from(it),
             }
         }
@@ -1141,44 +1212,47 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingNullBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    smallserial_: row.get(5),
-                    serial2_: row.get(6),
-                    int_: row.get(7),
-                    int4_: row.get(8),
-                    serial_: row.get(9),
-                    serial4_: row.get(10),
-                    bingint_: row.get(11),
-                    int8_: row.get(12),
-                    bigserial_: row.get(13),
-                    serial8_: row.get(14),
-                    float4_: row.get(15),
-                    real_: row.get(16),
-                    float8_: row.get(17),
-                    double_precision_: row.get(18),
-                    text_: row.get(19),
-                    varchar_: row.get(20),
-                    citext_: row.get(21),
-                    ltree_: row.get(22),
-                    bytea_: row.get(23),
-                    timestamp_: row.get(24),
-                    timestamp_without_time_zone_: row.get(25),
-                    timestamptz_: row.get(26),
-                    timestamp_with_time_zone_: row.get(27),
-                    date_: row.get(28),
-                    time_: row.get(29),
-                    json_: row.get(30),
-                    jsonb_: row.get(31),
-                    uuid_: row.get(32),
-                    inet_: row.get(33),
-                    macaddr_: row.get(34),
-                    numeric_: row.get(35),
-                },
+                extractor:
+                    |row: &postgres::Row| -> Result<super::EverythingNullBorrowed, postgres::Error> {
+                        Ok(super::EverythingNullBorrowed {
+                            bool_: row.try_get(0)?,
+                            boolean_: row.try_get(1)?,
+                            char_: row.try_get(2)?,
+                            smallint_: row.try_get(3)?,
+                            int2_: row.try_get(4)?,
+                            smallserial_: row.try_get(5)?,
+                            serial2_: row.try_get(6)?,
+                            int_: row.try_get(7)?,
+                            int4_: row.try_get(8)?,
+                            serial_: row.try_get(9)?,
+                            serial4_: row.try_get(10)?,
+                            bingint_: row.try_get(11)?,
+                            int8_: row.try_get(12)?,
+                            bigserial_: row.try_get(13)?,
+                            serial8_: row.try_get(14)?,
+                            float4_: row.try_get(15)?,
+                            real_: row.try_get(16)?,
+                            float8_: row.try_get(17)?,
+                            double_precision_: row.try_get(18)?,
+                            text_: row.try_get(19)?,
+                            varchar_: row.try_get(20)?,
+                            citext_: row.try_get(21)?,
+                            ltree_: row.try_get(22)?,
+                            bytea_: row.try_get(23)?,
+                            timestamp_: row.try_get(24)?,
+                            timestamp_without_time_zone_: row.try_get(25)?,
+                            timestamptz_: row.try_get(26)?,
+                            timestamp_with_time_zone_: row.try_get(27)?,
+                            date_: row.try_get(28)?,
+                            time_: row.try_get(29)?,
+                            json_: row.try_get(30)?,
+                            jsonb_: row.try_get(31)?,
+                            uuid_: row.try_get(32)?,
+                            inet_: row.try_get(33)?,
+                            macaddr_: row.try_get(34)?,
+                            numeric_: row.try_get(35)?,
+                        })
+                    },
                 mapper: |it| super::EverythingNull::from(it),
             }
         }
@@ -1370,7 +1444,7 @@ pub mod sync {
                 client,
                 params: [path],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -1390,37 +1464,41 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingArrayBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    int_: row.get(5),
-                    int4_: row.get(6),
-                    bingint_: row.get(7),
-                    int8_: row.get(8),
-                    float4_: row.get(9),
-                    real_: row.get(10),
-                    float8_: row.get(11),
-                    double_precision_: row.get(12),
-                    text_: row.get(13),
-                    varchar_: row.get(14),
-                    citext_: row.get(15),
-                    ltree_: row.get(16),
-                    bytea_: row.get(17),
-                    timestamp_: row.get(18),
-                    timestamp_without_time_zone_: row.get(19),
-                    timestamptz_: row.get(20),
-                    timestamp_with_time_zone_: row.get(21),
-                    date_: row.get(22),
-                    time_: row.get(23),
-                    json_: row.get(24),
-                    jsonb_: row.get(25),
-                    uuid_: row.get(26),
-                    inet_: row.get(27),
-                    macaddr_: row.get(28),
-                    numeric_: row.get(29),
+                extractor: |
+                    row: &postgres::Row,
+                | -> Result<super::EverythingArrayBorrowed, postgres::Error> {
+                    Ok(super::EverythingArrayBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        int_: row.try_get(5)?,
+                        int4_: row.try_get(6)?,
+                        bingint_: row.try_get(7)?,
+                        int8_: row.try_get(8)?,
+                        float4_: row.try_get(9)?,
+                        real_: row.try_get(10)?,
+                        float8_: row.try_get(11)?,
+                        double_precision_: row.try_get(12)?,
+                        text_: row.try_get(13)?,
+                        varchar_: row.try_get(14)?,
+                        citext_: row.try_get(15)?,
+                        ltree_: row.try_get(16)?,
+                        bytea_: row.try_get(17)?,
+                        timestamp_: row.try_get(18)?,
+                        timestamp_without_time_zone_: row.try_get(19)?,
+                        timestamptz_: row.try_get(20)?,
+                        timestamp_with_time_zone_: row.try_get(21)?,
+                        date_: row.try_get(22)?,
+                        time_: row.try_get(23)?,
+                        json_: row.try_get(24)?,
+                        jsonb_: row.try_get(25)?,
+                        uuid_: row.try_get(26)?,
+                        inet_: row.try_get(27)?,
+                        macaddr_: row.try_get(28)?,
+                        numeric_: row.try_get(29)?,
+                    })
                 },
                 mapper: |it| super::EverythingArray::from(it),
             }
@@ -1441,37 +1519,41 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingArrayNullBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    int_: row.get(5),
-                    int4_: row.get(6),
-                    bingint_: row.get(7),
-                    int8_: row.get(8),
-                    float4_: row.get(9),
-                    real_: row.get(10),
-                    float8_: row.get(11),
-                    double_precision_: row.get(12),
-                    text_: row.get(13),
-                    varchar_: row.get(14),
-                    citext_: row.get(15),
-                    ltree_: row.get(16),
-                    bytea_: row.get(17),
-                    timestamp_: row.get(18),
-                    timestamp_without_time_zone_: row.get(19),
-                    timestamptz_: row.get(20),
-                    timestamp_with_time_zone_: row.get(21),
-                    date_: row.get(22),
-                    time_: row.get(23),
-                    json_: row.get(24),
-                    jsonb_: row.get(25),
-                    uuid_: row.get(26),
-                    inet_: row.get(27),
-                    macaddr_: row.get(28),
-                    numeric_: row.get(29),
+                extractor: |
+                    row: &postgres::Row,
+                | -> Result<super::EverythingArrayNullBorrowed, postgres::Error> {
+                    Ok(super::EverythingArrayNullBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        int_: row.try_get(5)?,
+                        int4_: row.try_get(6)?,
+                        bingint_: row.try_get(7)?,
+                        int8_: row.try_get(8)?,
+                        float4_: row.try_get(9)?,
+                        real_: row.try_get(10)?,
+                        float8_: row.try_get(11)?,
+                        double_precision_: row.try_get(12)?,
+                        text_: row.try_get(13)?,
+                        varchar_: row.try_get(14)?,
+                        citext_: row.try_get(15)?,
+                        ltree_: row.try_get(16)?,
+                        bytea_: row.try_get(17)?,
+                        timestamp_: row.try_get(18)?,
+                        timestamp_without_time_zone_: row.try_get(19)?,
+                        timestamptz_: row.try_get(20)?,
+                        timestamp_with_time_zone_: row.try_get(21)?,
+                        date_: row.try_get(22)?,
+                        time_: row.try_get(23)?,
+                        json_: row.try_get(24)?,
+                        jsonb_: row.try_get(25)?,
+                        uuid_: row.try_get(26)?,
+                        inet_: row.try_get(27)?,
+                        macaddr_: row.try_get(28)?,
+                        numeric_: row.try_get(29)?,
+                    })
                 },
                 mapper: |it| super::EverythingArrayNull::from(it),
             }
@@ -1779,7 +1861,7 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -1816,7 +1898,7 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -1845,7 +1927,8 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::EverythingBorrowed,
+        extractor:
+            fn(&tokio_postgres::Row) -> Result<super::EverythingBorrowed, tokio_postgres::Error>,
         mapper: fn(super::EverythingBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingQuery<'c, 'a, 's, C, T, N>
@@ -1867,7 +1950,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1878,7 +1961,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1891,7 +1978,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1900,7 +1992,9 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::EverythingNullBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        ) -> Result<super::EverythingNullBorrowed, tokio_postgres::Error>,
         mapper: fn(super::EverythingNullBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingNullQuery<'c, 'a, 's, C, T, N>
@@ -1922,7 +2016,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1933,7 +2027,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1946,7 +2044,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -1955,7 +2058,7 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> &str,
+        extractor: fn(&tokio_postgres::Row) -> Result<&str, tokio_postgres::Error>,
         mapper: fn(&str) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> StringQuery<'c, 'a, 's, C, T, N>
@@ -1974,7 +2077,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -1985,7 +2088,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -1998,7 +2105,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -2007,7 +2119,9 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::EverythingArrayBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        ) -> Result<super::EverythingArrayBorrowed, tokio_postgres::Error>,
         mapper: fn(super::EverythingArrayBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingArrayQuery<'c, 'a, 's, C, T, N>
@@ -2029,7 +2143,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -2040,7 +2154,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -2053,7 +2171,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -2062,7 +2185,9 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::EverythingArrayNullBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        ) -> Result<super::EverythingArrayNullBorrowed, tokio_postgres::Error>,
         mapper: fn(super::EverythingArrayNullBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> EverythingArrayNullQuery<'c, 'a, 's, C, T, N>
@@ -2084,7 +2209,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -2095,7 +2220,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -2108,7 +2237,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -2117,7 +2251,10 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> crate::types::NightmareCompositeBorrowed,
+        extractor: fn(
+            &tokio_postgres::Row,
+        )
+            -> Result<crate::types::NightmareCompositeBorrowed, tokio_postgres::Error>,
         mapper: fn(crate::types::NightmareCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> NightmareCompositeQuery<'c, 'a, 's, C, T, N>
@@ -2139,7 +2276,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -2150,7 +2287,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -2163,7 +2304,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -2172,7 +2318,11 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> crate::types::schema::NightmareCompositeBorrowed,
+        extractor:
+            fn(
+                &tokio_postgres::Row,
+            )
+                -> Result<crate::types::schema::NightmareCompositeBorrowed, tokio_postgres::Error>,
         mapper: fn(crate::types::schema::NightmareCompositeBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> SchemaNightmareCompositeQuery<'c, 'a, 's, C, T, N>
@@ -2194,7 +2344,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -2205,7 +2355,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -2218,7 +2372,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -2236,43 +2395,47 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    smallserial_: row.get(5),
-                    serial2_: row.get(6),
-                    int_: row.get(7),
-                    int4_: row.get(8),
-                    serial_: row.get(9),
-                    serial4_: row.get(10),
-                    bingint_: row.get(11),
-                    int8_: row.get(12),
-                    bigserial_: row.get(13),
-                    serial8_: row.get(14),
-                    float4_: row.get(15),
-                    real_: row.get(16),
-                    float8_: row.get(17),
-                    double_precision_: row.get(18),
-                    text_: row.get(19),
-                    varchar_: row.get(20),
-                    citext_: row.get(21),
-                    ltree_: row.get(22),
-                    bytea_: row.get(23),
-                    timestamp_: row.get(24),
-                    timestamp_without_time_zone_: row.get(25),
-                    timestamptz_: row.get(26),
-                    timestamp_with_time_zone_: row.get(27),
-                    date_: row.get(28),
-                    time_: row.get(29),
-                    json_: row.get(30),
-                    jsonb_: row.get(31),
-                    uuid_: row.get(32),
-                    inet_: row.get(33),
-                    macaddr_: row.get(34),
-                    numeric_: row.get(35),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::EverythingBorrowed, tokio_postgres::Error> {
+                    Ok(super::EverythingBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        smallserial_: row.try_get(5)?,
+                        serial2_: row.try_get(6)?,
+                        int_: row.try_get(7)?,
+                        int4_: row.try_get(8)?,
+                        serial_: row.try_get(9)?,
+                        serial4_: row.try_get(10)?,
+                        bingint_: row.try_get(11)?,
+                        int8_: row.try_get(12)?,
+                        bigserial_: row.try_get(13)?,
+                        serial8_: row.try_get(14)?,
+                        float4_: row.try_get(15)?,
+                        real_: row.try_get(16)?,
+                        float8_: row.try_get(17)?,
+                        double_precision_: row.try_get(18)?,
+                        text_: row.try_get(19)?,
+                        varchar_: row.try_get(20)?,
+                        citext_: row.try_get(21)?,
+                        ltree_: row.try_get(22)?,
+                        bytea_: row.try_get(23)?,
+                        timestamp_: row.try_get(24)?,
+                        timestamp_without_time_zone_: row.try_get(25)?,
+                        timestamptz_: row.try_get(26)?,
+                        timestamp_with_time_zone_: row.try_get(27)?,
+                        date_: row.try_get(28)?,
+                        time_: row.try_get(29)?,
+                        json_: row.try_get(30)?,
+                        jsonb_: row.try_get(31)?,
+                        uuid_: row.try_get(32)?,
+                        inet_: row.try_get(33)?,
+                        macaddr_: row.try_get(34)?,
+                        numeric_: row.try_get(35)?,
+                    })
                 },
                 mapper: |it| super::Everything::from(it),
             }
@@ -2291,43 +2454,47 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingNullBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    smallserial_: row.get(5),
-                    serial2_: row.get(6),
-                    int_: row.get(7),
-                    int4_: row.get(8),
-                    serial_: row.get(9),
-                    serial4_: row.get(10),
-                    bingint_: row.get(11),
-                    int8_: row.get(12),
-                    bigserial_: row.get(13),
-                    serial8_: row.get(14),
-                    float4_: row.get(15),
-                    real_: row.get(16),
-                    float8_: row.get(17),
-                    double_precision_: row.get(18),
-                    text_: row.get(19),
-                    varchar_: row.get(20),
-                    citext_: row.get(21),
-                    ltree_: row.get(22),
-                    bytea_: row.get(23),
-                    timestamp_: row.get(24),
-                    timestamp_without_time_zone_: row.get(25),
-                    timestamptz_: row.get(26),
-                    timestamp_with_time_zone_: row.get(27),
-                    date_: row.get(28),
-                    time_: row.get(29),
-                    json_: row.get(30),
-                    jsonb_: row.get(31),
-                    uuid_: row.get(32),
-                    inet_: row.get(33),
-                    macaddr_: row.get(34),
-                    numeric_: row.get(35),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::EverythingNullBorrowed, tokio_postgres::Error> {
+                    Ok(super::EverythingNullBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        smallserial_: row.try_get(5)?,
+                        serial2_: row.try_get(6)?,
+                        int_: row.try_get(7)?,
+                        int4_: row.try_get(8)?,
+                        serial_: row.try_get(9)?,
+                        serial4_: row.try_get(10)?,
+                        bingint_: row.try_get(11)?,
+                        int8_: row.try_get(12)?,
+                        bigserial_: row.try_get(13)?,
+                        serial8_: row.try_get(14)?,
+                        float4_: row.try_get(15)?,
+                        real_: row.try_get(16)?,
+                        float8_: row.try_get(17)?,
+                        double_precision_: row.try_get(18)?,
+                        text_: row.try_get(19)?,
+                        varchar_: row.try_get(20)?,
+                        citext_: row.try_get(21)?,
+                        ltree_: row.try_get(22)?,
+                        bytea_: row.try_get(23)?,
+                        timestamp_: row.try_get(24)?,
+                        timestamp_without_time_zone_: row.try_get(25)?,
+                        timestamptz_: row.try_get(26)?,
+                        timestamp_with_time_zone_: row.try_get(27)?,
+                        date_: row.try_get(28)?,
+                        time_: row.try_get(29)?,
+                        json_: row.try_get(30)?,
+                        jsonb_: row.try_get(31)?,
+                        uuid_: row.try_get(32)?,
+                        inet_: row.try_get(33)?,
+                        macaddr_: row.try_get(34)?,
+                        numeric_: row.try_get(35)?,
+                    })
                 },
                 mapper: |it| super::EverythingNull::from(it),
             }
@@ -2524,7 +2691,7 @@ pub mod async_ {
                 client,
                 params: [path],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -2544,37 +2711,41 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingArrayBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    int_: row.get(5),
-                    int4_: row.get(6),
-                    bingint_: row.get(7),
-                    int8_: row.get(8),
-                    float4_: row.get(9),
-                    real_: row.get(10),
-                    float8_: row.get(11),
-                    double_precision_: row.get(12),
-                    text_: row.get(13),
-                    varchar_: row.get(14),
-                    citext_: row.get(15),
-                    ltree_: row.get(16),
-                    bytea_: row.get(17),
-                    timestamp_: row.get(18),
-                    timestamp_without_time_zone_: row.get(19),
-                    timestamptz_: row.get(20),
-                    timestamp_with_time_zone_: row.get(21),
-                    date_: row.get(22),
-                    time_: row.get(23),
-                    json_: row.get(24),
-                    jsonb_: row.get(25),
-                    uuid_: row.get(26),
-                    inet_: row.get(27),
-                    macaddr_: row.get(28),
-                    numeric_: row.get(29),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::EverythingArrayBorrowed, tokio_postgres::Error> {
+                    Ok(super::EverythingArrayBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        int_: row.try_get(5)?,
+                        int4_: row.try_get(6)?,
+                        bingint_: row.try_get(7)?,
+                        int8_: row.try_get(8)?,
+                        float4_: row.try_get(9)?,
+                        real_: row.try_get(10)?,
+                        float8_: row.try_get(11)?,
+                        double_precision_: row.try_get(12)?,
+                        text_: row.try_get(13)?,
+                        varchar_: row.try_get(14)?,
+                        citext_: row.try_get(15)?,
+                        ltree_: row.try_get(16)?,
+                        bytea_: row.try_get(17)?,
+                        timestamp_: row.try_get(18)?,
+                        timestamp_without_time_zone_: row.try_get(19)?,
+                        timestamptz_: row.try_get(20)?,
+                        timestamp_with_time_zone_: row.try_get(21)?,
+                        date_: row.try_get(22)?,
+                        time_: row.try_get(23)?,
+                        json_: row.try_get(24)?,
+                        jsonb_: row.try_get(25)?,
+                        uuid_: row.try_get(26)?,
+                        inet_: row.try_get(27)?,
+                        macaddr_: row.try_get(28)?,
+                        numeric_: row.try_get(29)?,
+                    })
                 },
                 mapper: |it| super::EverythingArray::from(it),
             }
@@ -2595,37 +2766,42 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::EverythingArrayNullBorrowed {
-                    bool_: row.get(0),
-                    boolean_: row.get(1),
-                    char_: row.get(2),
-                    smallint_: row.get(3),
-                    int2_: row.get(4),
-                    int_: row.get(5),
-                    int4_: row.get(6),
-                    bingint_: row.get(7),
-                    int8_: row.get(8),
-                    float4_: row.get(9),
-                    real_: row.get(10),
-                    float8_: row.get(11),
-                    double_precision_: row.get(12),
-                    text_: row.get(13),
-                    varchar_: row.get(14),
-                    citext_: row.get(15),
-                    ltree_: row.get(16),
-                    bytea_: row.get(17),
-                    timestamp_: row.get(18),
-                    timestamp_without_time_zone_: row.get(19),
-                    timestamptz_: row.get(20),
-                    timestamp_with_time_zone_: row.get(21),
-                    date_: row.get(22),
-                    time_: row.get(23),
-                    json_: row.get(24),
-                    jsonb_: row.get(25),
-                    uuid_: row.get(26),
-                    inet_: row.get(27),
-                    macaddr_: row.get(28),
-                    numeric_: row.get(29),
+                extractor: |row: &tokio_postgres::Row| -> Result<
+                    super::EverythingArrayNullBorrowed,
+                    tokio_postgres::Error,
+                > {
+                    Ok(super::EverythingArrayNullBorrowed {
+                        bool_: row.try_get(0)?,
+                        boolean_: row.try_get(1)?,
+                        char_: row.try_get(2)?,
+                        smallint_: row.try_get(3)?,
+                        int2_: row.try_get(4)?,
+                        int_: row.try_get(5)?,
+                        int4_: row.try_get(6)?,
+                        bingint_: row.try_get(7)?,
+                        int8_: row.try_get(8)?,
+                        float4_: row.try_get(9)?,
+                        real_: row.try_get(10)?,
+                        float8_: row.try_get(11)?,
+                        double_precision_: row.try_get(12)?,
+                        text_: row.try_get(13)?,
+                        varchar_: row.try_get(14)?,
+                        citext_: row.try_get(15)?,
+                        ltree_: row.try_get(16)?,
+                        bytea_: row.try_get(17)?,
+                        timestamp_: row.try_get(18)?,
+                        timestamp_without_time_zone_: row.try_get(19)?,
+                        timestamptz_: row.try_get(20)?,
+                        timestamp_with_time_zone_: row.try_get(21)?,
+                        date_: row.try_get(22)?,
+                        time_: row.try_get(23)?,
+                        json_: row.try_get(24)?,
+                        jsonb_: row.try_get(25)?,
+                        uuid_: row.try_get(26)?,
+                        inet_: row.try_get(27)?,
+                        macaddr_: row.try_get(28)?,
+                        numeric_: row.try_get(29)?,
+                    })
                 },
                 mapper: |it| super::EverythingArrayNull::from(it),
             }
@@ -2937,7 +3113,7 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }
@@ -2974,7 +3150,7 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| row.get(0),
+                extractor: |row| Ok(row.try_get(0)?),
                 mapper: |it| it.into(),
             }
         }

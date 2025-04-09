@@ -188,7 +188,7 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
             client: &'c #client_mut C,
             params: [&'a (dyn postgres_types::ToSql + Sync); N],
             stmt: &'s mut #client::Stmt,
-            extractor: fn(&#backend::Row) -> #row_struct,
+            extractor: fn(&#backend::Row) -> Result<#row_struct, #backend::Error>,
             mapper: fn(#row_struct) -> T,
         }
 
@@ -209,7 +209,7 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
             pub #fn_async fn one(self) -> Result<T, #backend::Error> {
                 let stmt = self.stmt.prepare(self.client)#fn_await?;
                 let row = self.client.query_one(stmt, &self.params)#fn_await?;
-                Ok((self.mapper)((self.extractor)(&row)))
+                Ok((self.mapper)((self.extractor)(&row)?))
             }
 
             pub #fn_async fn all(self) -> Result<Vec<T>, #backend::Error> {
@@ -222,7 +222,11 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
                     .client
                     .query_opt(stmt, &self.params)
                     #fn_await?
-                    .map(|row| (self.mapper)((self.extractor)(&row))))
+                    .map(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                    .transpose()?)
             }
 
             pub #fn_async fn iter(
@@ -234,7 +238,12 @@ fn gen_row_query(row: &PreparedItem, ctx: &GenCtx) -> proc_macro2::TokenStream {
                     .query_raw(stmt, crate::slice_iter(&self.params))
                     #fn_await?
                     #raw_pre
-                    .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                    .map(move |res|
+                        res.and_then(|row| {
+                            let extracted = (self.extractor)(&row)?;
+                            Ok((self.mapper)(extracted))
+                        })
+                    )
                     #raw_post;
                 Ok(it)
             }
@@ -334,8 +343,10 @@ fn gen_query_fn(
                 .collect();
 
             let extractor = quote! {
-                |row| #path_type {
-                    #(#fields_name: row.get(#fields_idx),)*
+                |row: &#backend::Row| -> Result<#path_type, #backend::Error> {
+                    Ok(#path_type {
+                        #(#fields_name: row.try_get(#fields_idx)?,)*
+                    })
                 }
             };
 
@@ -373,7 +384,7 @@ fn gen_query_fn(
                         client,
                         params: [#(#params_name,)*],
                         stmt: &mut self.0,
-                        extractor: |row| row.get(0),
+                        extractor: |row| Ok(row.try_get(0)?),
                         mapper: |it| #owning_call,
                     }
                 }

@@ -81,7 +81,7 @@ pub struct AuthorsQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::sync::Stmt,
-    extractor: fn(&postgres::Row) -> AuthorsBorrowed,
+    extractor: fn(&postgres::Row) -> Result<AuthorsBorrowed, postgres::Error>,
     mapper: fn(AuthorsBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> AuthorsQuery<'c, 'a, 's, C, T, N>
@@ -100,7 +100,7 @@ where
     pub fn one(self) -> Result<T, postgres::Error> {
         let stmt = self.stmt.prepare(self.client)?;
         let row = self.client.query_one(stmt, &self.params)?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub fn all(self) -> Result<Vec<T>, postgres::Error> {
         self.iter()?.collect()
@@ -110,7 +110,11 @@ where
         Ok(self
             .client
             .query_opt(stmt, &self.params)?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub fn iter(
         self,
@@ -120,7 +124,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))?
             .iterator()
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            });
         Ok(it)
     }
 }
@@ -128,7 +137,7 @@ pub struct StringQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::sync::Stmt,
-    extractor: fn(&postgres::Row) -> &str,
+    extractor: fn(&postgres::Row) -> Result<&str, postgres::Error>,
     mapper: fn(&str) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> StringQuery<'c, 'a, 's, C, T, N>
@@ -147,7 +156,7 @@ where
     pub fn one(self) -> Result<T, postgres::Error> {
         let stmt = self.stmt.prepare(self.client)?;
         let row = self.client.query_one(stmt, &self.params)?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub fn all(self) -> Result<Vec<T>, postgres::Error> {
         self.iter()?.collect()
@@ -157,7 +166,11 @@ where
         Ok(self
             .client
             .query_opt(stmt, &self.params)?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub fn iter(
         self,
@@ -167,7 +180,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))?
             .iterator()
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            });
         Ok(it)
     }
 }
@@ -175,7 +193,7 @@ pub struct AuthorNameStartingWithQuery<'c, 'a, 's, C: GenericClient, T, const N:
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::sync::Stmt,
-    extractor: fn(&postgres::Row) -> AuthorNameStartingWithBorrowed,
+    extractor: fn(&postgres::Row) -> Result<AuthorNameStartingWithBorrowed, postgres::Error>,
     mapper: fn(AuthorNameStartingWithBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> AuthorNameStartingWithQuery<'c, 'a, 's, C, T, N>
@@ -197,7 +215,7 @@ where
     pub fn one(self) -> Result<T, postgres::Error> {
         let stmt = self.stmt.prepare(self.client)?;
         let row = self.client.query_one(stmt, &self.params)?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub fn all(self) -> Result<Vec<T>, postgres::Error> {
         self.iter()?.collect()
@@ -207,7 +225,11 @@ where
         Ok(self
             .client
             .query_opt(stmt, &self.params)?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub fn iter(
         self,
@@ -217,7 +239,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))?
             .iterator()
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            });
         Ok(it)
     }
 }
@@ -225,7 +252,7 @@ pub struct VoiceactorQuery<'c, 'a, 's, C: GenericClient, T, const N: usize> {
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::sync::Stmt,
-    extractor: fn(&postgres::Row) -> crate::types::VoiceactorBorrowed,
+    extractor: fn(&postgres::Row) -> Result<crate::types::VoiceactorBorrowed, postgres::Error>,
     mapper: fn(crate::types::VoiceactorBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> VoiceactorQuery<'c, 'a, 's, C, T, N>
@@ -247,7 +274,7 @@ where
     pub fn one(self) -> Result<T, postgres::Error> {
         let stmt = self.stmt.prepare(self.client)?;
         let row = self.client.query_one(stmt, &self.params)?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub fn all(self) -> Result<Vec<T>, postgres::Error> {
         self.iter()?.collect()
@@ -257,7 +284,11 @@ where
         Ok(self
             .client
             .query_opt(stmt, &self.params)?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub fn iter(
         self,
@@ -267,7 +298,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))?
             .iterator()
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            });
         Ok(it)
     }
 }
@@ -275,7 +311,7 @@ pub struct SelectTranslationsQuery<'c, 'a, 's, C: GenericClient, T, const N: usi
     client: &'c mut C,
     params: [&'a (dyn postgres_types::ToSql + Sync); N],
     stmt: &'s mut crate::client::sync::Stmt,
-    extractor: fn(&postgres::Row) -> SelectTranslationsBorrowed,
+    extractor: fn(&postgres::Row) -> Result<SelectTranslationsBorrowed, postgres::Error>,
     mapper: fn(SelectTranslationsBorrowed) -> T,
 }
 impl<'c, 'a, 's, C, T: 'c, const N: usize> SelectTranslationsQuery<'c, 'a, 's, C, T, N>
@@ -297,7 +333,7 @@ where
     pub fn one(self) -> Result<T, postgres::Error> {
         let stmt = self.stmt.prepare(self.client)?;
         let row = self.client.query_one(stmt, &self.params)?;
-        Ok((self.mapper)((self.extractor)(&row)))
+        Ok((self.mapper)((self.extractor)(&row)?))
     }
     pub fn all(self) -> Result<Vec<T>, postgres::Error> {
         self.iter()?.collect()
@@ -307,7 +343,11 @@ where
         Ok(self
             .client
             .query_opt(stmt, &self.params)?
-            .map(|row| (self.mapper)((self.extractor)(&row))))
+            .map(|row| {
+                let extracted = (self.extractor)(&row)?;
+                Ok((self.mapper)(extracted))
+            })
+            .transpose()?)
     }
     pub fn iter(
         self,
@@ -317,7 +357,12 @@ where
             .client
             .query_raw(stmt, crate::slice_iter(&self.params))?
             .iterator()
-            .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+            .map(move |res| {
+                res.and_then(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+            });
         Ok(it)
     }
 }
@@ -334,10 +379,12 @@ impl AuthorsStmt {
             client,
             params: [],
             stmt: &mut self.0,
-            extractor: |row| AuthorsBorrowed {
-                id: row.get(0),
-                name: row.get(1),
-                country: row.get(2),
+            extractor: |row: &postgres::Row| -> Result<AuthorsBorrowed, postgres::Error> {
+                Ok(AuthorsBorrowed {
+                    id: row.try_get(0)?,
+                    name: row.try_get(1)?,
+                    country: row.try_get(2)?,
+                })
             },
             mapper: |it| Authors::from(it),
         }
@@ -356,7 +403,7 @@ impl BooksStmt {
             client,
             params: [],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }
@@ -377,7 +424,7 @@ impl AuthorNameByIdStmt {
             client,
             params: [id],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }
@@ -398,12 +445,15 @@ impl AuthorNameStartingWithStmt {
             client,
             params: [start_str],
             stmt: &mut self.0,
-            extractor: |row| AuthorNameStartingWithBorrowed {
-                authorid: row.get(0),
-                name: row.get(1),
-                bookid: row.get(2),
-                title: row.get(3),
-            },
+            extractor:
+                |row: &postgres::Row| -> Result<AuthorNameStartingWithBorrowed, postgres::Error> {
+                    Ok(AuthorNameStartingWithBorrowed {
+                        authorid: row.try_get(0)?,
+                        name: row.try_get(1)?,
+                        bookid: row.try_get(2)?,
+                        title: row.try_get(3)?,
+                    })
+                },
             mapper: |it| AuthorNameStartingWith::from(it),
         }
     }
@@ -442,7 +492,7 @@ impl SelectVoiceActorWithCharacterStmt {
             client,
             params: [spongebob_character],
             stmt: &mut self.0,
-            extractor: |row| row.get(0),
+            extractor: |row| Ok(row.try_get(0)?),
             mapper: |it| it.into(),
         }
     }
@@ -462,10 +512,13 @@ impl SelectTranslationsStmt {
             client,
             params: [],
             stmt: &mut self.0,
-            extractor: |row| SelectTranslationsBorrowed {
-                title: row.get(0),
-                translations: row.get(1),
-            },
+            extractor:
+                |row: &postgres::Row| -> Result<SelectTranslationsBorrowed, postgres::Error> {
+                    Ok(SelectTranslationsBorrowed {
+                        title: row.try_get(0)?,
+                        translations: row.try_get(1)?,
+                    })
+                },
             mapper: |it| SelectTranslations::from(it),
         }
     }

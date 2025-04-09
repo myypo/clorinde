@@ -43,7 +43,7 @@ pub mod sync {
         client: &'c mut C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::sync::Stmt,
-        extractor: fn(&postgres::Row) -> super::NullityBorrowed,
+        extractor: fn(&postgres::Row) -> Result<super::NullityBorrowed, postgres::Error>,
         mapper: fn(super::NullityBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> NullityQuery<'c, 'a, 's, C, T, N>
@@ -65,7 +65,7 @@ pub mod sync {
         pub fn one(self) -> Result<T, postgres::Error> {
             let stmt = self.stmt.prepare(self.client)?;
             let row = self.client.query_one(stmt, &self.params)?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub fn all(self) -> Result<Vec<T>, postgres::Error> {
             self.iter()?.collect()
@@ -75,7 +75,11 @@ pub mod sync {
             Ok(self
                 .client
                 .query_opt(stmt, &self.params)?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub fn iter(
             self,
@@ -86,7 +90,12 @@ pub mod sync {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))?
                 .iterator()
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))));
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                });
             Ok(it)
         }
     }
@@ -155,11 +164,14 @@ pub mod sync {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::NullityBorrowed {
-                    texts: row.get(0),
-                    name: row.get(1),
-                    composite: row.get(2),
-                },
+                extractor:
+                    |row: &postgres::Row| -> Result<super::NullityBorrowed, postgres::Error> {
+                        Ok(super::NullityBorrowed {
+                            texts: row.try_get(0)?,
+                            name: row.try_get(1)?,
+                            composite: row.try_get(2)?,
+                        })
+                    },
                 mapper: |it| super::Nullity::from(it),
             }
         }
@@ -172,7 +184,8 @@ pub mod async_ {
         client: &'c C,
         params: [&'a (dyn postgres_types::ToSql + Sync); N],
         stmt: &'s mut crate::client::async_::Stmt,
-        extractor: fn(&tokio_postgres::Row) -> super::NullityBorrowed,
+        extractor:
+            fn(&tokio_postgres::Row) -> Result<super::NullityBorrowed, tokio_postgres::Error>,
         mapper: fn(super::NullityBorrowed) -> T,
     }
     impl<'c, 'a, 's, C, T: 'c, const N: usize> NullityQuery<'c, 'a, 's, C, T, N>
@@ -194,7 +207,7 @@ pub mod async_ {
         pub async fn one(self) -> Result<T, tokio_postgres::Error> {
             let stmt = self.stmt.prepare(self.client).await?;
             let row = self.client.query_one(stmt, &self.params).await?;
-            Ok((self.mapper)((self.extractor)(&row)))
+            Ok((self.mapper)((self.extractor)(&row)?))
         }
         pub async fn all(self) -> Result<Vec<T>, tokio_postgres::Error> {
             self.iter().await?.try_collect().await
@@ -205,7 +218,11 @@ pub mod async_ {
                 .client
                 .query_opt(stmt, &self.params)
                 .await?
-                .map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(|row| {
+                    let extracted = (self.extractor)(&row)?;
+                    Ok((self.mapper)(extracted))
+                })
+                .transpose()?)
         }
         pub async fn iter(
             self,
@@ -218,7 +235,12 @@ pub mod async_ {
                 .client
                 .query_raw(stmt, crate::slice_iter(&self.params))
                 .await?
-                .map(move |res| res.map(|row| (self.mapper)((self.extractor)(&row))))
+                .map(move |res| {
+                    res.and_then(|row| {
+                        let extracted = (self.extractor)(&row)?;
+                        Ok((self.mapper)(extracted))
+                    })
+                })
                 .into_stream();
             Ok(it)
         }
@@ -290,10 +312,14 @@ pub mod async_ {
                 client,
                 params: [],
                 stmt: &mut self.0,
-                extractor: |row| super::NullityBorrowed {
-                    texts: row.get(0),
-                    name: row.get(1),
-                    composite: row.get(2),
+                extractor: |
+                    row: &tokio_postgres::Row,
+                | -> Result<super::NullityBorrowed, tokio_postgres::Error> {
+                    Ok(super::NullityBorrowed {
+                        texts: row.try_get(0)?,
+                        name: row.try_get(1)?,
+                        composite: row.try_get(2)?,
+                    })
                 },
                 mapper: |it| super::Nullity::from(it),
             }
