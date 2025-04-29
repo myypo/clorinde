@@ -23,7 +23,7 @@ postgres-protocol = "0.6.8"
 ## Types dependencies
 # TIME, DATE, TIMESTAMP or TIMESTAMPZ
 chrono = { version = "0.4.40", optional = true, features = [] }
-time = { version = "0.3.39", optional = true }
+time = { version = "0.3.41", optional = true }
 
 # Postgres
 postgres = { version = "0.19.10", features = ["with-chrono-0_4", "with-time-0_3"] }

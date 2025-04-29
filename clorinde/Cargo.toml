@@ -14,9 +14,9 @@ publish = true
 [dependencies]
 # Codegen tools
 quote = "1.0.40"
-prettyplease = "0.2.31"
-syn = { version = "2.0.100", features = ["full"] }
-proc-macro2 = "1.0.94"
+prettyplease = "0.2.32"
+syn = { version = "2.0.101", features = ["full"] }
+proc-macro2 = "1.0.95"
 
 # Postgres interaction
 postgres = "0.19.9"
@@ -24,23 +24,23 @@ postgres-types = "0.2.8"
 
 # Error handling and reporting
 thiserror = "2.0.12"
-miette = { version = "7.5.0", features = ["fancy"] }
+miette = { version = "7.6.0", features = ["fancy"] }
 
 # Parser
-chumsky = "0.10.0"
+chumsky = "0.10.1"
 
 # CLI handling
-clap = { version = "4.5.32", features = ["derive", "env"] }
+clap = { version = "4.5.37", features = ["derive", "env"] }
 
 # Word case
 heck = "0.5.0"
 
 # Order-preserving map to work around borrowing issues
-indexmap = "2.7.0"
+indexmap = "2.9.0"
 
 # Generate temporary files
 tempfile = "3.19.1"
 
 # Config handling
 serde = { version = "1.0.219", features = ["derive"] }
-toml = "0.8.20"
+toml = "0.8.22"

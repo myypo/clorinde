@@ -207,7 +207,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
                     })
                     .optional(),
             );
-            cargo.dep("time", DependencyTable::new("0.3.39").optional());
+            cargo.dep("time", DependencyTable::new("0.3.41").optional());
 
             client_features.push("with-chrono-0_4".to_string());
             client_features.push("with-time-0_3".to_string());
@@ -216,7 +216,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             cargo.line("# UUID");
             cargo.dep(
                 "uuid",
-                DependencyTable::new("1.15.1").features(
+                DependencyTable::new("1.16.0").features(
                     if config.serialize || dependency_analysis.json {
                         vec!["serde"]
                     } else {
@@ -235,7 +235,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             cargo.line("# DECIMAL");
             cargo.dep(
                 "rust_decimal",
-                DependencyTable::new("1.36.0").features(vec!["db-postgres"]),
+                DependencyTable::new("1.37.1").features(vec!["db-postgres"]),
             );
         }
         if dependency_analysis.json {
@@ -246,7 +246,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
             );
             cargo.dep(
                 "serde",
-                DependencyTable::new("1.0.218").features(vec!["derive"]),
+                DependencyTable::new("1.0.219").features(vec!["derive"]),
             );
             client_features.push("with-serde_json-1".to_string());
         }
@@ -257,7 +257,7 @@ pub fn gen_cargo_file(dependency_analysis: &DependencyAnalysis, config: &Config)
         cargo.line("# JSON or JSONB");
         cargo.dep(
             "serde",
-            DependencyTable::new("1.0.218").features(vec!["derive"]),
+            DependencyTable::new("1.0.219").features(vec!["derive"]),
         );
         client_features.push("with-serde_json-1".to_string());
     }
