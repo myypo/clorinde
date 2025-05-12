@@ -20,5 +20,7 @@ derive-traits = ["Hash"]
 sponge_bob_character = ["serde::Deserialize"]
 
 [types.mapping]
-"pg_catalog.date" = "ctypes::date::Date"
+"pg_catalog.date" = { rust-type = "ctypes::date::Date", attributes = [
+    'allow(dead_code)',
+] }
 "pg_catalog.tstzrange" = "postgres_range::Range<chrono::DateTime<chrono::FixedOffset>>"

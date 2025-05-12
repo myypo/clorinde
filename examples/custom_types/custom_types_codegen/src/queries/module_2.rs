@@ -9,12 +9,14 @@ pub struct Author {
     pub id: i32,
     pub name: String,
     pub country: String,
+    #[allow(dead_code)]
     pub dob: ctypes::date::Date,
 }
 pub struct AuthorBorrowed<'a> {
     pub id: i32,
     pub name: &'a str,
     pub country: &'a str,
+    #[allow(dead_code)]
     pub dob: ctypes::date::Date,
 }
 impl<'a> From<AuthorBorrowed<'a>> for Author {
